@@ -1,0 +1,71 @@
+.scheduler-calendar {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ccc;
+  font-family: Arial, sans-serif;
+  margin-top: 20px;
+}
+
+.header-row {
+  display: flex;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+  background-color: #f4f4f4;
+}
+
+.time-col-header, .day-header-cell, .time-header-cell, .calendar-cell {
+  padding: 8px;
+  text-align: center;
+  border-right: 1px solid #eee;
+  border-bottom: 1px solid #eee; /* Add bottom border to all cells for grid look */
+}
+
+.time-col-header { /* Top-left empty cell */
+  flex-basis: 100px; /* Width of the time slot labels column */
+  flex-shrink: 0;
+  border-right: 1px solid #ccc;
+}
+
+.day-header-cell {
+  flex: 1; /* Distribute remaining space equally among day headers */
+  border-right: 1px solid #ccc;
+}
+.day-header-cell:last-child {
+  border-right: none;
+}
+
+
+.time-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.time-header-cell { /* For 08:00, 09:00 etc. */
+  flex-basis: 100px; /* Consistent width with the top-left empty cell */
+  flex-shrink: 0;
+  font-weight: bold;
+  background-color: #f9f9f9;
+  border-right: 1px solid #ccc;
+}
+
+.calendar-cell {
+  flex: 1; /* Distribute space equally among cells in a row */
+  min-height: 60px; /* Give some height to the cells */
+  position: relative; /* For future absolute positioning of class blocks if needed */
+}
+.calendar-cell:last-child {
+  border-right: none;
+}
+
+/* Styling for the existing draggable items container (temporary) */
+.scheduled-items-container {
+  padding: 10px;
+  margin-top: 20px;
+  background-color: #e9e9e9;
+  border: 1px solid #ddd;
+  min-height: 100px;
+}
+
+.scheduled-items-container h3 {
+  margin-top: 0;
+}

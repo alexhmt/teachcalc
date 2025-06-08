@@ -5,7 +5,8 @@ import SchedulerCalendar from './SchedulerCalendar'; // Assuming default export
 import { useScheduler } from '../context/SchedulerContext';
 import { ScheduledClass } from '../types';
 import { DropResult } from 'react-beautiful-dnd';
-import { addHours, setDay, setHours, getDay, getHours, getMonth, getFullYear } from 'date-fns';
+// Removed getFullYear, getMonth, getDay, getHours from here as we'll use native methods for assertions
+import { addHours } from 'date-fns';
 
 
 // Mock react-beautiful-dnd to capture the onDragEnd handler
@@ -32,9 +33,7 @@ jest.mock('../context/SchedulerContext', () => ({
 describe('SchedulerCalendar - onDragEnd Logic', () => {
   const mockUpdateScheduledClass = jest.fn();
 
-  // Consistent base time for mock classes
-  // Initial class: Monday, Nov 20, 2023, 09:00 AM
-  const initialStartTime = new Date(2023, 10, 20, 9, 0, 0); // Month is 0-indexed, so 10 is November
+  const initialStartTime = new Date(2023, 10, 20, 9, 0, 0); // Mon Nov 20 2023 09:00:00
 
   const mockScheduledClasses: ScheduledClass[] = [
     {
@@ -48,56 +47,47 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
 
   beforeEach(() => {
     (useScheduler as jest.Mock).mockReturnValue({
-      teachers: [{id: 't1', name: 'Teacher 1'}], // Add some mock teachers/groups
+      teachers: [{id: 't1', name: 'Teacher 1'}],
       groups: [{id: 'g1', name: 'Group 1', teacherId: 't1', studentIds: []}],
-      scheduledClasses: [...mockScheduledClasses], // Use a copy to avoid modification across tests
+      scheduledClasses: [...mockScheduledClasses],
       updateScheduledClass: mockUpdateScheduledClass,
-      // Mock other context values if SchedulerCalendar directly uses them beyond these
     });
     jest.clearAllMocks();
-
-    // Render the component. This ensures SchedulerCalendar is rendered and
-    // its onDragEnd is passed to our mocked DragDropContext, captured in capturedOnDragEnd.
     render(<SchedulerCalendar />);
   });
 
   it('should update class time correctly on a valid drop into a new cell', () => {
     const result: DropResult = {
       draggableId: 'class1',
-      source: { droppableId: 'cell-Monday-09:00', index: 0 }, // Original position (matches initialStartTime)
-      destination: { droppableId: 'cell-Tuesday-10:00', index: 0 }, // New position
-      reason: 'DROP',
-      type: 'DEFAULT',
-      mode: 'FLUID',
+      source: { droppableId: 'cell-Monday-09:00', index: 0 },
+      destination: { droppableId: 'cell-Tuesday-10:00', index: 0 },
+      reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
     };
 
-    // Directly call the captured onDragEnd handler
     act(() => {
       capturedOnDragEnd(result);
     });
 
-
     expect(mockUpdateScheduledClass).toHaveBeenCalledTimes(1);
     const updatedClass = mockUpdateScheduledClass.mock.calls[0][0];
-
     expect(updatedClass.id).toBe('class1');
 
-    // Expected: Tuesday (day 2 for date-fns if week starts on Sunday, or if setDay is used carefully)
-    // The original date is Mon Nov 20, 2023. Tuesday should be Nov 21, 2023.
     const expectedStartTime = new Date(2023, 10, 21, 10, 0, 0); // Tue Nov 21 2023 10:00 AM
 
-    expect(getFullYear(updatedClass.startTime)).toBe(getFullYear(expectedStartTime));
-    expect(getMonth(updatedClass.startTime)).toBe(getMonth(expectedStartTime));
-    expect(getDay(updatedClass.startTime)).toBe(2); // Tuesday is 2 (0=Sun, 1=Mon, 2=Tue)
-    expect(getHours(updatedClass.startTime)).toBe(10);
-    expect(updatedClass.startTime.getMinutes()).toBe(0);
+    // Using native Date prototype methods for assertions
+    expect(updatedClass.startTime.getFullYear()).toBe(expectedStartTime.getFullYear());
+    expect(updatedClass.startTime.getMonth()).toBe(expectedStartTime.getMonth());
+    // Native getDay(): Sunday is 0, Monday is 1, Tuesday is 2
+    expect(updatedClass.startTime.getDay()).toBe(expectedStartTime.getDay());
+    expect(updatedClass.startTime.getHours()).toBe(expectedStartTime.getHours());
+    expect(updatedClass.startTime.getMinutes()).toBe(0); // Explicitly check minutes
   });
 
   it('should not call updateScheduledClass if destination is null', () => {
     const result: DropResult = {
       draggableId: 'class1',
       source: { droppableId: 'cell-Monday-09:00', index: 0 },
-      destination: null, // No destination
+      destination: null,
       reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
     };
     act(() => {
@@ -110,7 +100,7 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
     const result: DropResult = {
       draggableId: 'class1',
       source: { droppableId: 'cell-Monday-09:00', index: 0 },
-      destination: { droppableId: 'cell-Monday-09:00', index: 0 }, // Same destination and index
+      destination: { droppableId: 'cell-Monday-09:00', index: 0 },
       reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
     };
      act(() => {
@@ -121,7 +111,7 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
 
   it('should not call updateScheduledClass if draggableId is not found in scheduledClasses', () => {
     const result: DropResult = {
-      draggableId: 'nonExistentClass', // This class ID doesn't exist
+      draggableId: 'nonExistentClass',
       source: { droppableId: 'cell-Monday-09:00', index: 0 },
       destination: { droppableId: 'cell-Tuesday-10:00', index: 0 },
       reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
@@ -136,7 +126,7 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
     const result: DropResult = {
       draggableId: 'class1',
       source: { droppableId: 'cell-Monday-09:00', index: 0 },
-      destination: { droppableId: 'some-other-area', index: 0 }, // Not a cell
+      destination: { droppableId: 'some-other-area', index: 0 },
       reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
     };
     act(() => {

@@ -1,0 +1,73 @@
+/* Print-specific styles */
+@media print {
+  /* Hide non-essential elements */
+  body {
+    font-family: Arial, sans-serif; /* Use a common font for printing */
+    background-color: #fff !important; /* Ensure white background */
+    color: #000 !important; /* Ensure black text for readability */
+    -webkit-print-color-adjust: exact !important; /* Attempt to force exact colors for backgrounds/borders in Chrome/Safari */
+    print-color-adjust: exact !important; /* Standard property */
+  }
+
+  /* Generic class to hide elements */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Specific components to hide if not using .no-print class directly on them */
+  /* Example: if ScheduleForm is wrapped in a div with id="schedule-form-wrapper" */
+  /* #schedule-form-wrapper { display: none !important; } */
+
+  /* Calendar specific adjustments */
+  .scheduler-calendar {
+    border: 1px solid #ccc; /* Add a simple border for the table */
+    box-shadow: none; /* Remove screen shadows */
+    margin: 0; /* Remove margins if any */
+    padding: 0; /* Remove padding if any */
+    width: 100%; /* Try to use full page width */
+  }
+
+  .header-row, .time-row {
+    border-bottom: 1px solid #ccc;
+  }
+
+  .time-col-header, .day-header-cell, .time-header-cell, .calendar-cell {
+    border-right: 1px solid #ccc;
+    padding: 5px; /* Reduce padding for print */
+    font-size: 0.8em; /* Slightly smaller font for print */
+  }
+  .day-header-cell:last-child, .calendar-cell:last-child {
+    border-right: none;
+  }
+
+
+  /* ClassBlock adjustments for print */
+  .class-block-wrapper-print { /* We might need to wrap ClassBlock or adjust its style directly */
+    page-break-inside: avoid; /* Try to keep class blocks from splitting */
+    border: 1px solid #eee; /* Add a light border if colors are too faint */
+  }
+
+  /* Ensure ClassBlock styles are print-friendly */
+  /* The actual ClassBlock styles are inline in the component.
+     We can override some aspects here or ensure the inline styles are print-friendly.
+     The main concern is background colors and text contrast.
+     The getTeacherColor function produces light pastels, which might be okay.
+     The left border accent should print.
+  */
+
+  /* Example: If ClassBlock itself had a class 'class-block-component' */
+  /* .class-block-component {
+    background-color: #fff !important;
+    border: 1px solid #ddd !important;
+    color: #000 !important;
+  } */
+
+  /* Hide the placeholder '+' in empty cells */
+  .calendar-cell div[style*="font-size: 0.8em"] { /* Targets the '+' sign in empty cells */
+    display: none !important;
+  }
+  .calendar-cell div[style*="background-color: rgba(0,0,255,0.1)"] { /* Target drag over empty cell cue */
+     display: none !important;
+  }
+
+}

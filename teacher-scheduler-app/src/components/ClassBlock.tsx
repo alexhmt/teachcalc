@@ -7,10 +7,11 @@ import { parseISO } from 'date-fns';
 interface ClassBlockProps {
   scheduledClass: ScheduledClass;
   index: number;
-  isHighlighted?: boolean; // New prop for highlighting
+  isHighlighted?: boolean;
+  onEdit?: (scheduledClass: ScheduledClass) => void; // New prop for edit callback
 }
 
-const ClassBlock: React.FC<ClassBlockProps> = ({ scheduledClass, index, isHighlighted }) => {
+const ClassBlock: React.FC<ClassBlockProps> = ({ scheduledClass, index, isHighlighted, onEdit }) => {
   const teacherColor = getTeacherColor(scheduledClass.teacherId);
 
   const startTime = typeof scheduledClass.startTime === 'string'
@@ -20,8 +21,7 @@ const ClassBlock: React.FC<ClassBlockProps> = ({ scheduledClass, index, isHighli
     ? parseISO(scheduledClass.endTime)
     : scheduledClass.endTime;
 
-  // Base style
-  const style: React.CSSProperties = {
+  const baseStyle: React.CSSProperties = {
     userSelect: 'none',
     padding: '8px',
     margin: '0 0 4px 0',
@@ -35,24 +35,22 @@ const ClassBlock: React.FC<ClassBlockProps> = ({ scheduledClass, index, isHighli
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    transition: 'opacity 0.3s ease-in-out, box-shadow 0.3s ease-in-out', // Smooth transition for opacity/shadow
+    transition: 'opacity 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+    cursor: onEdit ? 'pointer' : 'grab', // Change cursor if editable
   };
 
-  // Style when dragging
-  if (Draggable.name && React.useContext(Draggable.draggableId)?.isDragging) { // A bit of a hack to check if dragging, snapshot is better
-    // The snapshot is provided by the Draggable render prop, this is a more direct way.
+  let dynamicStyle: React.CSSProperties = {};
+  if (isHighlighted === false) {
+    dynamicStyle.opacity = 0.4;
+  } else if (isHighlighted === true) {
+    dynamicStyle.boxShadow = `0 0 8px ${teacherColor}`;
   }
 
-  // Apply highlighting: if isHighlighted is false (meaning it's dimmed), reduce opacity.
-  // If isHighlighted is true or undefined (search not active), opacity is 1.
-  if (isHighlighted === false) { // Explicitly false means it should be dimmed
-    style.opacity = 0.4;
-  } else if (isHighlighted === true) { // Explicitly true means it's a search match
-    style.boxShadow = `0 0 8px ${teacherColor}`; // Use teacher color for highlight shadow
-  }
-
-  // Note: The snapshot from Draggable should ideally be used for dragging styles.
-  // The above Draggable.name check is not standard. Let's rely on snapshot.
+  const handleOnClick = () => {
+    if (onEdit) {
+      onEdit(scheduledClass);
+    }
+  };
 
   return (
     <Draggable draggableId={scheduledClass.id} index={index}>
@@ -62,6 +60,7 @@ const ClassBlock: React.FC<ClassBlockProps> = ({ scheduledClass, index, isHighli
             backgroundColor: '#555',
             color: 'white',
             boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+            cursor: 'grabbing',
           }
         : {};
 
@@ -71,10 +70,12 @@ const ClassBlock: React.FC<ClassBlockProps> = ({ scheduledClass, index, isHighli
             {...provided.draggableProps}
             {...provided.dragHandleProps}
             style={{
-              ...style, // Base style (includes highlight/dimming)
-              ...draggingStyle, // Override with dragging style if applicable
-              ...provided.draggableProps.style, // Style from dnd library
+              ...baseStyle,
+              ...dynamicStyle,
+              ...draggingStyle,
+              ...provided.draggableProps.style,
             }}
+            onClick={handleOnClick} // Add onClick handler
           >
             <div><strong>Group:</strong> {scheduledClass.groupId} (T: {scheduledClass.teacherId})</div>
             <div>{startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>

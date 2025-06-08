@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
 import { useScheduler } from '../context/SchedulerContext';
 import ClassBlock from './ClassBlock';
+import ScheduleForm from './ScheduleForm';
 import './SchedulerCalendar.css';
-import { ScheduledClass, Group as GroupType } from '../types'; // Import GroupType
+import { ScheduledClass, Group as GroupType } from '../types';
 import { setHours, setMinutes, setSeconds, setMilliseconds, setDay, addHours, getHours, isSameDay, parseISO } from 'date-fns';
 
 const DAY_NAME_TO_INDEX: { [key: string]: number } = {
@@ -17,7 +18,8 @@ const SchedulerCalendar: React.FC = () => {
   const { scheduledClasses, updateScheduledClass, teachers, groups } = useScheduler();
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>(""); // State for search query
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [editingClass, setEditingClass] = useState<ScheduledClass | null>(null);
 
   const handleTeacherFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedTeacherId(event.target.value === "" ? null : event.target.value);
@@ -27,8 +29,21 @@ const SchedulerCalendar: React.FC = () => {
     setSelectedGroupId(event.target.value === "" ? null : event.target.value);
   };
 
-  const handleSearchQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => { // Handler for search query
+  const handleSearchQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
+  };
+
+  const handleEditClass = (cls: ScheduledClass) => {
+    setEditingClass(cls);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleFormClose = () => {
+    setEditingClass(null);
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   const onDragEnd = (result: DropResult) => {
@@ -51,8 +66,8 @@ const SchedulerCalendar: React.FC = () => {
       newStartTime = setSeconds(newStartTime, 0);
       newStartTime = setMilliseconds(newStartTime, 0);
       const newEndTime = addHours(newStartTime, 1);
-      const updatedClass: ScheduledClass = { ...draggedClass, startTime: newStartTime, endTime: newEndTime };
-      updateScheduledClass(updatedClass);
+      const updatedClassFromDrag: ScheduledClass = { ...draggedClass, startTime: newStartTime, endTime: newEndTime };
+      updateScheduledClass(updatedClassFromDrag);
     }
   };
 
@@ -64,12 +79,15 @@ const SchedulerCalendar: React.FC = () => {
     currentFilteredClasses = currentFilteredClasses.filter(cls => cls.groupId === selectedGroupId);
   }
 
-  // Create a map for quick group lookup
   const groupMap = new Map<string, GroupType>(groups.map(group => [group.id, group]));
 
   return (
     <div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '20px', padding: '10px', border: '1px solid #eee', borderRadius: '4px', alignItems: 'center' }}>
+      <div className="no-print"> {/* Wrapper for form to be hidden */}
+        <ScheduleForm editingClass={editingClass} onFormClose={handleFormClose} />
+      </div>
+
+      <div className="no-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '10px', padding: '10px', border: '1px solid #eee', borderRadius: '4px', alignItems: 'center' }}>
         <div>
           <label htmlFor="teacher-filter" style={{ marginRight: '10px', fontWeight: 'bold' }}>Teacher:</label>
           <select id="teacher-filter" value={selectedTeacherId || ""} onChange={handleTeacherFilterChange} style={{padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}>
@@ -84,7 +102,7 @@ const SchedulerCalendar: React.FC = () => {
             {groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
           </select>
         </div>
-        <div> {/* Search Input */}
+        <div>
           <label htmlFor="search-query" style={{ marginRight: '10px', fontWeight: 'bold' }}>Search Group:</label>
           <input
             type="text"
@@ -96,9 +114,14 @@ const SchedulerCalendar: React.FC = () => {
           />
         </div>
       </div>
+      <div className="no-print" style={{marginBottom: '20px'}}> {/* Print button container */}
+        <button onClick={handlePrint} style={{padding: '10px 15px', borderRadius: '4px', border: 'none', backgroundColor: '#17a2b8', color: 'white', cursor: 'pointer'}}>
+          Print Schedule
+        </button>
+      </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="scheduler-calendar">
+        <div className="scheduler-calendar"> {/* This ID can be used for print styling if needed */}
           <div className="header-row">
             <div className="time-col-header"></div>
             {DAYS_OF_WEEK.map(day => <div key={day} className="day-header-cell">{day}</div>)}
@@ -134,7 +157,15 @@ const SchedulerCalendar: React.FC = () => {
                           if (searchQuery.trim() !== "") {
                             isHighlighted = group?.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false;
                           }
-                          return <ClassBlock key={sc.id} scheduledClass={sc} index={index} isHighlighted={isHighlighted} />;
+                          return (
+                            <ClassBlock
+                              key={sc.id}
+                              scheduledClass={sc}
+                              index={index}
+                              isHighlighted={isHighlighted}
+                              onEdit={handleEditClass}
+                            />
+                          );
                         })}
                         {provided.placeholder}
                         {classesInCell.length === 0 && snapshot.isDraggingOver && <div style={{ height: '100%', width: '100%', backgroundColor: 'rgba(0,0,255,0.1)' }}></div>}

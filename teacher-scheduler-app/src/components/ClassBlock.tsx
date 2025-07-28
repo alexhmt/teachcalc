@@ -1,5 +1,5 @@
 import React from 'react';
-import { Draggable } from 'react-beautiful-dnd';
+import { Draggable } from '@hello-pangea/dnd';
 import { ScheduledClass } from '../types';
 import { getTeacherColor } from '../utils/schedulerUtils';
 import { parseISO } from 'date-fns';

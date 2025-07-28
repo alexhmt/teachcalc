@@ -4,15 +4,15 @@ import '@testing-library/jest-dom';
 import SchedulerCalendar from './SchedulerCalendar'; // Assuming default export
 import { useScheduler } from '../context/SchedulerContext';
 import { ScheduledClass } from '../types';
-import { DropResult } from 'react-beautiful-dnd';
+import { DropResult } from '@hello-pangea/dnd';
 // Removed getFullYear, getMonth, getDay, getHours from here as we'll use native methods for assertions
 import { addHours } from 'date-fns';
 
 
-// Mock react-beautiful-dnd to capture the onDragEnd handler
+// Mock @hello-pangea/dnd to capture the onDragEnd handler
 let capturedOnDragEnd: (result: DropResult) => void = () => {};
-jest.mock('react-beautiful-dnd', () => ({
-  ...jest.requireActual('react-beautiful-dnd'), // Import and retain default behavior
+jest.mock('@hello-pangea/dnd', () => ({
+  ...jest.requireActual('@hello-pangea/dnd'), // Import and retain default behavior
   DragDropContext: ({ children, onDragEnd }: { children: React.ReactNode, onDragEnd: (result: DropResult) => void }) => {
     capturedOnDragEnd = onDragEnd; // Capture the onDragEnd handler passed by SchedulerCalendar
     return <>{children}</>; // Render children normally

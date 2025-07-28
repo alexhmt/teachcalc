@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { useScheduler } from '../context/SchedulerContext';
 import ClassBlock from './ClassBlock';
 import ScheduleForm from './ScheduleForm';

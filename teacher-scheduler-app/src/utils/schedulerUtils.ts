@@ -32,12 +32,10 @@ export const checkForConflicts = (
     if (sameTimeSlot) {
       // Conflict if the same teacher is booked at the same time
       if (classToCheck.teacherId === existingClass.teacherId) {
-        console.log(`Conflict: Teacher ${classToCheck.teacherId} is already booked at ${classToCheckStartTime.toISOString()}`);
         return true;
       }
       // Conflict if the same group is booked at the same time (e.g. with a different teacher, which shouldn't happen ideally)
       if (classToCheck.groupId === existingClass.groupId) {
-        console.log(`Conflict: Group ${classToCheck.groupId} is already scheduled at ${classToCheckStartTime.toISOString()}`);
         return true;
       }
     }

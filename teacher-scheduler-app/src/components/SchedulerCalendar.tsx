@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { useScheduler } from '../context/SchedulerContext';
 import ClassBlock from './ClassBlock';
 import ScheduleForm from './ScheduleForm';
 import './SchedulerCalendar.css';
 import { ScheduledClass, Group as GroupType } from '../types';
-import { setHours, setMinutes, setSeconds, setMilliseconds, setDay, addHours, getHours, isSameDay, parseISO } from 'date-fns';
+import { setHours, setMinutes, setSeconds, setMilliseconds, setDay, addHours, getHours, parseISO } from 'date-fns';
 
 const DAY_NAME_TO_INDEX: { [key: string]: number } = {
   Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6,
@@ -21,32 +21,32 @@ const SchedulerCalendar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [editingClass, setEditingClass] = useState<ScheduledClass | null>(null);
 
-  const handleTeacherFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleTeacherFilterChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedTeacherId(event.target.value === "" ? null : event.target.value);
-  };
+  }, []);
 
-  const handleGroupFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleGroupFilterChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedGroupId(event.target.value === "" ? null : event.target.value);
-  };
+  }, []);
 
-  const handleSearchQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchQueryChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
-  };
+  }, []);
 
-  const handleEditClass = (cls: ScheduledClass) => {
+  const handleEditClass = useCallback((cls: ScheduledClass) => {
     setEditingClass(cls);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
-  const handleFormClose = () => {
+  const handleFormClose = useCallback(() => {
     setEditingClass(null);
-  };
+  }, []);
 
-  const handlePrint = () => {
+  const handlePrint = useCallback(() => {
     window.print();
-  };
+  }, []);
 
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = useCallback((result: DropResult) => {
     const { source, destination, draggableId } = result;
     if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) return;
 
@@ -69,7 +69,7 @@ const SchedulerCalendar: React.FC = () => {
       const updatedClassFromDrag: ScheduledClass = { ...draggedClass, startTime: newStartTime, endTime: newEndTime };
       updateScheduledClass(updatedClassFromDrag);
     }
-  };
+  }, [scheduledClasses, updateScheduledClass]);
 
   let currentFilteredClasses = scheduledClasses;
   if (selectedTeacherId) {

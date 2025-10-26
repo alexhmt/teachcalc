@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import { Teacher, Group, Student, ScheduledClass } from '../types';
 
 // 1. Interfaces for Context State
@@ -22,9 +22,9 @@ const defaultState: ISchedulerContextProps = {
   groups: [],
   students: [],
   scheduledClasses: [],
-  addScheduledClass: () => console.warn('addScheduledClass function not implemented'),
-  updateScheduledClass: () => console.warn('updateScheduledClass function not implemented'),
-  deleteScheduledClass: () => console.warn('deleteScheduledClass function not implemented'),
+  addScheduledClass: () => {},
+  updateScheduledClass: () => {},
+  deleteScheduledClass: () => {},
 };
 
 export const SchedulerContext = createContext<ISchedulerContextProps>(defaultState);

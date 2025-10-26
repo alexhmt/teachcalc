@@ -11,7 +11,7 @@ interface ClassBlockProps {
   onEdit?: (scheduledClass: ScheduledClass) => void; // New prop for edit callback
 }
 
-const ClassBlock: React.FC<ClassBlockProps> = ({ scheduledClass, index, isHighlighted, onEdit }) => {
+const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, index, isHighlighted, onEdit }) => {
   const teacherColor = getTeacherColor(scheduledClass.teacherId);
 
   const startTime = typeof scheduledClass.startTime === 'string'
@@ -84,6 +84,8 @@ const ClassBlock: React.FC<ClassBlockProps> = ({ scheduledClass, index, isHighli
       }}
     </Draggable>
   );
-};
+});
+
+ClassBlock.displayName = 'ClassBlock';
 
 export default ClassBlock;

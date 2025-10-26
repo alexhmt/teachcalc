@@ -6,6 +6,22 @@ import ScheduleForm from './ScheduleForm';
 import './SchedulerCalendar.css';
 import { ScheduledClass, Group as GroupType } from '../types';
 import { setHours, setMinutes, setSeconds, setMilliseconds, setDay, addHours, getHours, parseISO } from 'date-fns';
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Button,
+  Fab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Paper,
+  SelectChangeEvent,
+} from '@mui/material';
+import { Add as AddIcon, Print as PrintIcon } from '@mui/icons-material';
 
 const DAY_NAME_TO_INDEX: { [key: string]: number } = {
   Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6,
@@ -16,17 +32,18 @@ const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => `${String(i + 8).padStar
 
 const SchedulerCalendar: React.FC = () => {
   const { scheduledClasses, updateScheduledClass, teachers, groups } = useScheduler();
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [editingClass, setEditingClass] = useState<ScheduledClass | null>(null);
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
 
-  const handleTeacherFilterChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedTeacherId(event.target.value === "" ? null : event.target.value);
+  const handleTeacherFilterChange = useCallback((event: SelectChangeEvent) => {
+    setSelectedTeacherId(event.target.value);
   }, []);
 
-  const handleGroupFilterChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedGroupId(event.target.value === "" ? null : event.target.value);
+  const handleGroupFilterChange = useCallback((event: SelectChangeEvent) => {
+    setSelectedGroupId(event.target.value);
   }, []);
 
   const handleSearchQueryChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,10 +52,16 @@ const SchedulerCalendar: React.FC = () => {
 
   const handleEditClass = useCallback((cls: ScheduledClass) => {
     setEditingClass(cls);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setFormDialogOpen(true);
+  }, []);
+
+  const handleOpenForm = useCallback(() => {
+    setEditingClass(null);
+    setFormDialogOpen(true);
   }, []);
 
   const handleFormClose = useCallback(() => {
+    setFormDialogOpen(false);
     setEditingClass(null);
   }, []);
 
@@ -82,94 +105,106 @@ const SchedulerCalendar: React.FC = () => {
   const groupMap = new Map<string, GroupType>(groups.map(group => [group.id, group]));
 
   return (
-    <div>
-      <div className="no-print"> {/* Wrapper for form to be hidden */}
-        <ScheduleForm editingClass={editingClass} onFormClose={handleFormClose} />
-      </div>
+    <Box sx={{ p: 2 }}>
+      {/* Filters */}
+      <Paper sx={{ p: 2, mb: 2 }} className="no-print">
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Teacher</InputLabel>
+            <Select value={selectedTeacherId} label="Teacher" onChange={handleTeacherFilterChange}>
+              <MenuItem value="">All</MenuItem>
+              {teachers.map(teacher => (
+                <MenuItem key={teacher.id} value={teacher.id}>
+                  {teacher.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-      <div className="no-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '10px', padding: '10px', border: '1px solid #eee', borderRadius: '4px', alignItems: 'center' }}>
-        <div>
-          <label htmlFor="teacher-filter" style={{ marginRight: '10px', fontWeight: 'bold' }}>Teacher:</label>
-          <select id="teacher-filter" value={selectedTeacherId || ""} onChange={handleTeacherFilterChange} style={{padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}>
-            <option value="">All</option>
-            {teachers.map(teacher => <option key={teacher.id} value={teacher.id}>{teacher.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="group-filter" style={{ marginRight: '10px', fontWeight: 'bold' }}>Group:</label>
-          <select id="group-filter" value={selectedGroupId || ""} onChange={handleGroupFilterChange} style={{padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}>
-            <option value="">All</option>
-            {groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="search-query" style={{ marginRight: '10px', fontWeight: 'bold' }}>Search Group:</label>
-          <input
-            type="text"
-            id="search-query"
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Group</InputLabel>
+            <Select value={selectedGroupId} label="Group" onChange={handleGroupFilterChange}>
+              <MenuItem value="">All</MenuItem>
+              {groups.map(group => (
+                <MenuItem key={group.id} value={group.id}>
+                  {group.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Search Group"
             placeholder="Enter group name..."
             value={searchQuery}
             onChange={handleSearchQueryChange}
-            style={{padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}
+            sx={{ minWidth: 200 }}
           />
-        </div>
-      </div>
-      <div className="no-print" style={{marginBottom: '20px'}}> {/* Print button container */}
-        <button onClick={handlePrint} style={{padding: '10px 15px', borderRadius: '4px', border: 'none', backgroundColor: '#17a2b8', color: 'white', cursor: 'pointer'}}>
-          Print Schedule
-        </button>
-      </div>
 
+          <Button
+            variant="outlined"
+            startIcon={<PrintIcon />}
+            onClick={handlePrint}
+            sx={{ ml: 'auto' }}
+          >
+            Print
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Calendar Grid */}
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="scheduler-calendar"> {/* This ID can be used for print styling if needed */}
-          <div className="header-row">
-            <div className="time-col-header"></div>
-            {DAYS_OF_WEEK.map(day => <div key={day} className="day-header-cell">{day}</div>)}
+        <div className="scheduler-calendar">
+          <div className="day-row header-row">
+            <div className="time-cell header-cell">Time</div>
+            {DAYS_OF_WEEK.map((day) => (
+              <div key={day} className="day-header header-cell">
+                {day}
+              </div>
+            ))}
           </div>
-
-          {TIME_SLOTS.map(time => (
-            <div key={time} className="time-row">
-              <div className="time-header-cell">{time}</div>
-              {DAYS_OF_WEEK.map(day => {
-                const cellId = `cell-${day}-${time}`;
-                const hourForCell = parseInt(time.split(':')[0], 10);
-
-                const classesInCell = currentFilteredClasses.filter(sc => {
-                  const classStartTime = typeof sc.startTime === 'string' ? parseISO(sc.startTime) : sc.startTime;
-                  const classDayIndex = classStartTime.getDay();
-                  const targetDayIndex = DAY_NAME_TO_INDEX[day];
-                  return classDayIndex === targetDayIndex && getHours(classStartTime) === hourForCell;
+          {TIME_SLOTS.map((timeSlot) => (
+            <div key={timeSlot} className="day-row">
+              <div className="time-cell">{timeSlot}</div>
+              {DAYS_OF_WEEK.map((day) => {
+                const droppableId = `cell-${day}-${timeSlot}`;
+                const classesInSlot = currentFilteredClasses.filter((scheduledClass) => {
+                  const startTime =
+                    typeof scheduledClass.startTime === 'string'
+                      ? parseISO(scheduledClass.startTime)
+                      : scheduledClass.startTime;
+                  const classHour = getHours(startTime);
+                  const slotHour = parseInt(timeSlot.split(':')[0], 10);
+                  const dayOfWeek = startTime.getDay();
+                  const dayIndex = DAY_NAME_TO_INDEX[day];
+                  return classHour === slotHour && dayOfWeek === dayIndex;
                 });
 
                 return (
-                  <Droppable key={cellId} droppableId={cellId}>
+                  <Droppable droppableId={droppableId} key={droppableId}>
                     {(provided, snapshot) => (
                       <div
+                        className={`day-cell ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className="calendar-cell"
-                        data-day={day} data-time={time}
-                        style={{ background: snapshot.isDraggingOver ? 'lightblue' : undefined, minHeight: '60px' }}
                       >
-                        {classesInCell.map((sc, index) => {
-                          const group = groupMap.get(sc.groupId);
-                          let isHighlighted: boolean | undefined = undefined;
-                          if (searchQuery.trim() !== "") {
-                            isHighlighted = group?.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false;
-                          }
+                        {classesInSlot.map((scheduledClass, index) => {
+                          const group = groupMap.get(scheduledClass.groupId);
+                          const shouldHighlight =
+                            searchQuery.trim() !== '' && group
+                              ? group.name.toLowerCase().includes(searchQuery.toLowerCase())
+                              : undefined;
                           return (
                             <ClassBlock
-                              key={sc.id}
-                              scheduledClass={sc}
+                              key={scheduledClass.id}
+                              scheduledClass={scheduledClass}
                               index={index}
-                              isHighlighted={isHighlighted}
+                              isHighlighted={shouldHighlight}
                               onEdit={handleEditClass}
                             />
                           );
                         })}
                         {provided.placeholder}
-                        {classesInCell.length === 0 && snapshot.isDraggingOver && <div style={{ height: '100%', width: '100%', backgroundColor: 'rgba(0,0,255,0.1)' }}></div>}
-                        {classesInCell.length === 0 && !snapshot.isDraggingOver && <div style={{fontSize: '0.8em', color: '#aaa', paddingTop: '20px'}}>+</div>}
                       </div>
                     )}
                   </Droppable>
@@ -179,7 +214,36 @@ const SchedulerCalendar: React.FC = () => {
           ))}
         </div>
       </DragDropContext>
-    </div>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="add"
+        sx={{
+          position: 'fixed',
+          bottom: 16,
+          right: 16,
+        }}
+        className="no-print"
+        onClick={handleOpenForm}
+      >
+        <AddIcon />
+      </Fab>
+
+      {/* Form Dialog */}
+      <Dialog
+        open={formDialogOpen}
+        onClose={handleFormClose}
+        maxWidth="sm"
+        fullWidth
+        className="no-print"
+      >
+        <DialogTitle>{editingClass ? 'Edit Class' : 'Add New Class'}</DialogTitle>
+        <DialogContent>
+          <ScheduleForm editingClass={editingClass} onFormClose={handleFormClose} />
+        </DialogContent>
+      </Dialog>
+    </Box>
   );
 };
 

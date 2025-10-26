@@ -11,9 +11,22 @@ export interface ISchedulerState {
 
 // 2. Interfaces for Context Value
 export interface ISchedulerContextProps extends ISchedulerState {
+  // Scheduled Classes
   addScheduledClass: (item: ScheduledClass) => void;
   updateScheduledClass: (item: ScheduledClass) => void;
   deleteScheduledClass: (id: string) => void;
+  // Teachers
+  addTeacher: (teacher: Teacher) => void;
+  updateTeacher: (teacher: Teacher) => void;
+  deleteTeacher: (id: string) => void;
+  // Groups
+  addGroup: (group: Group) => void;
+  updateGroup: (group: Group) => void;
+  deleteGroup: (id: string) => void;
+  // Students
+  addStudent: (student: Student) => void;
+  updateStudent: (student: Student) => void;
+  deleteStudent: (id: string) => void;
 }
 
 // 3. React Context with default values
@@ -25,6 +38,15 @@ const defaultState: ISchedulerContextProps = {
   addScheduledClass: () => {},
   updateScheduledClass: () => {},
   deleteScheduledClass: () => {},
+  addTeacher: () => {},
+  updateTeacher: () => {},
+  deleteTeacher: () => {},
+  addGroup: () => {},
+  updateGroup: () => {},
+  deleteGroup: () => {},
+  addStudent: () => {},
+  updateStudent: () => {},
+  deleteStudent: () => {},
 };
 
 export const SchedulerContext = createContext<ISchedulerContextProps>(defaultState);

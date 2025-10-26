@@ -1,18 +1,74 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import './print.css'; // Import print-specific CSS
 import SchedulerCalendar from './components/SchedulerCalendar';
+import TeacherManagement from './components/TeacherManagement';
+import GroupManagement from './components/GroupManagement';
 import { SchedulerProvider } from './context/SchedulerProvider';
+import { Box, Tabs, Tab, AppBar, Toolbar, Typography } from '@mui/material';
+import { CalendarMonth, Person, Group as GroupIcon } from '@mui/icons-material';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`tabpanel-${index}`}
+      aria-labelledby={`tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box>{children}</Box>}
+    </div>
+  );
+}
 
 const App: React.FC = () => {
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
   return (
     <SchedulerProvider>
-      <div className="App">
-        <header className="App-header no-print"> {/* Added no-print to header */}
-          <h1>Teacher Scheduler</h1>
-        </header>
-        <SchedulerCalendar />
-      </div>
+      <Box sx={{ flexGrow: 1 }}>
+        <AppBar position="static" className="no-print">
+          <Toolbar sx={{ minHeight: '56px !important' }}>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Teacher Scheduler
+            </Typography>
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              textColor="inherit"
+              indicatorColor="secondary"
+              sx={{ ml: 'auto' }}
+            >
+              <Tab icon={<CalendarMonth />} label="Schedule" />
+              <Tab icon={<Person />} label="Teachers" />
+              <Tab icon={<GroupIcon />} label="Groups" />
+            </Tabs>
+          </Toolbar>
+        </AppBar>
+
+        <TabPanel value={tabValue} index={0}>
+          <SchedulerCalendar />
+        </TabPanel>
+        <TabPanel value={tabValue} index={1}>
+          <TeacherManagement />
+        </TabPanel>
+        <TabPanel value={tabValue} index={2}>
+          <GroupManagement />
+        </TabPanel>
+      </Box>
     </SchedulerProvider>
   );
 }

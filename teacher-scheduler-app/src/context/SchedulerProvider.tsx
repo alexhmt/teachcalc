@@ -64,6 +64,55 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
     setScheduledClasses(prev => prev.filter(sc => sc.id !== id));
   };
 
+  // Teacher management
+  const addTeacher = (teacher: Teacher) => {
+    setTeachers(prev => [...prev, teacher]);
+  };
+
+  const updateTeacher = (teacher: Teacher) => {
+    setTeachers(prev => prev.map(t => t.id === teacher.id ? teacher : t));
+  };
+
+  const deleteTeacher = (id: string) => {
+    setTeachers(prev => prev.filter(t => t.id !== id));
+    // Also remove teacher from groups and scheduled classes
+    setGroups(prev => prev.filter(g => g.teacherId !== id));
+    setScheduledClasses(prev => prev.filter(sc => sc.teacherId !== id));
+  };
+
+  // Group management
+  const addGroup = (group: Group) => {
+    setGroups(prev => [...prev, group]);
+  };
+
+  const updateGroup = (group: Group) => {
+    setGroups(prev => prev.map(g => g.id === group.id ? group : g));
+  };
+
+  const deleteGroup = (id: string) => {
+    setGroups(prev => prev.filter(g => g.id !== id));
+    // Also remove group from scheduled classes
+    setScheduledClasses(prev => prev.filter(sc => sc.groupId !== id));
+  };
+
+  // Student management
+  const addStudent = (student: Student) => {
+    setStudents(prev => [...prev, student]);
+  };
+
+  const updateStudent = (student: Student) => {
+    setStudents(prev => prev.map(s => s.id === student.id ? student : s));
+  };
+
+  const deleteStudent = (id: string) => {
+    setStudents(prev => prev.filter(s => s.id !== id));
+    // Also remove student from groups
+    setGroups(prev => prev.map(g => ({
+      ...g,
+      studentIds: g.studentIds.filter(sid => sid !== id)
+    })));
+  };
+
   const contextValue = {
     teachers,
     groups,
@@ -72,6 +121,15 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
     addScheduledClass,
     updateScheduledClass,
     deleteScheduledClass,
+    addTeacher,
+    updateTeacher,
+    deleteTeacher,
+    addGroup,
+    updateGroup,
+    deleteGroup,
+    addStudent,
+    updateStudent,
+    deleteStudent,
   };
 
   return (

@@ -3,6 +3,7 @@ import { Draggable } from '@hello-pangea/dnd';
 import { ScheduledClass } from '../types';
 import { getTeacherColor } from '../utils/schedulerUtils';
 import { parseISO } from 'date-fns';
+import { useScheduler } from '../context/SchedulerContext';
 
 interface ClassBlockProps {
   scheduledClass: ScheduledClass;
@@ -12,7 +13,11 @@ interface ClassBlockProps {
 }
 
 const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, index, isHighlighted, onEdit }) => {
+  const { teachers, groups } = useScheduler();
   const teacherColor = getTeacherColor(scheduledClass.teacherId);
+
+  const teacher = teachers.find(t => t.id === scheduledClass.teacherId);
+  const group = groups.find(g => g.id === scheduledClass.groupId);
 
   const startTime = typeof scheduledClass.startTime === 'string'
     ? parseISO(scheduledClass.startTime)
@@ -77,8 +82,11 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
             }}
             onClick={handleOnClick} // Add onClick handler
           >
-            <div><strong>Group:</strong> {scheduledClass.groupId} (T: {scheduledClass.teacherId})</div>
-            <div>{startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            <div><strong>{group?.name || 'Unknown Group'}</strong></div>
+            <div style={{ fontSize: '0.85em', color: '#666' }}>Teacher: {teacher?.name || 'Unknown'}</div>
+            <div style={{ fontSize: '0.85em', marginTop: '2px' }}>
+              {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </div>
           </div>
         );
       }}

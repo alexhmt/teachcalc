@@ -34,6 +34,7 @@ const SchedulerCalendar: React.FC = () => {
   const { scheduledClasses, updateScheduledClass, teachers, groups, students } = useScheduler();
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
+  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [editingClass, setEditingClass] = useState<ScheduledClass | null>(null);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
@@ -44,6 +45,14 @@ const SchedulerCalendar: React.FC = () => {
 
   const handleGroupFilterChange = useCallback((event: SelectChangeEvent) => {
     setSelectedGroupId(event.target.value);
+  }, []);
+
+  const handleStudentFilterChange = useCallback((event: SelectChangeEvent) => {
+    setSelectedStudentId(event.target.value);
+    // When student is selected, clear group filter
+    if (event.target.value) {
+      setSelectedGroupId('');
+    }
   }, []);
 
   const handleSearchQueryChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +107,17 @@ const SchedulerCalendar: React.FC = () => {
   if (selectedTeacherId) {
     currentFilteredClasses = currentFilteredClasses.filter(cls => cls.teacherId === selectedTeacherId);
   }
-  if (selectedGroupId) {
+
+  // If student is selected, show only groups where this student is enrolled
+  if (selectedStudentId) {
+    const studentGroupIds = groups
+      .filter(g => g.studentIds.includes(selectedStudentId))
+      .map(g => g.id);
+    currentFilteredClasses = currentFilteredClasses.filter(cls =>
+      (cls.groupId && studentGroupIds.includes(cls.groupId)) || cls.studentId === selectedStudentId
+    );
+  } else if (selectedGroupId) {
+    // Only apply group filter if student filter is not active
     currentFilteredClasses = currentFilteredClasses.filter(cls => cls.groupId === selectedGroupId);
   }
 
@@ -124,7 +143,12 @@ const SchedulerCalendar: React.FC = () => {
 
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel>Group</InputLabel>
-            <Select value={selectedGroupId} label="Group" onChange={handleGroupFilterChange}>
+            <Select
+              value={selectedGroupId}
+              label="Group"
+              onChange={handleGroupFilterChange}
+              disabled={!!selectedStudentId}
+            >
               <MenuItem value="">All</MenuItem>
               {groups.map(group => (
                 <MenuItem key={group.id} value={group.id}>
@@ -134,9 +158,21 @@ const SchedulerCalendar: React.FC = () => {
             </Select>
           </FormControl>
 
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Student</InputLabel>
+            <Select value={selectedStudentId} label="Student" onChange={handleStudentFilterChange}>
+              <MenuItem value="">All</MenuItem>
+              {students.map(student => (
+                <MenuItem key={student.id} value={student.id}>
+                  {student.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <TextField
-            label="Search Group"
-            placeholder="Enter group name..."
+            label="Search"
+            placeholder="Enter name..."
             value={searchQuery}
             onChange={handleSearchQueryChange}
             sx={{ minWidth: 200 }}

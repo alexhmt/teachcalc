@@ -49,6 +49,7 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
     (useScheduler as jest.Mock).mockReturnValue({
       teachers: [{id: 't1', name: 'Teacher 1'}],
       groups: [{id: 'g1', name: 'Group 1', teacherId: 't1', studentIds: []}],
+      students: [], // Added students array
       scheduledClasses: [...mockScheduledClasses],
       updateScheduledClass: mockUpdateScheduledClass,
     });

@@ -13,12 +13,11 @@ interface ClassBlockProps {
 }
 
 const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, index, isHighlighted, onEdit }) => {
-  const { teachers, groups, students } = useScheduler();
+  const { teachers, groups } = useScheduler();
   const teacherColor = getTeacherColor(scheduledClass.teacherId);
 
   const teacher = teachers.find(t => t.id === scheduledClass.teacherId);
-  const group = scheduledClass.groupId ? groups.find(g => g.id === scheduledClass.groupId) : undefined;
-  const student = scheduledClass.studentId ? students.find(s => s.id === scheduledClass.studentId) : undefined;
+  const group = groups.find(g => g.id === scheduledClass.groupId);
 
   const startTime = typeof scheduledClass.startTime === 'string'
     ? parseISO(scheduledClass.startTime)
@@ -83,14 +82,7 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
             }}
             onClick={handleOnClick} // Add onClick handler
           >
-            {/* Display Group or Individual Student */}
-            {group ? (
-              <div><strong>{group.name}</strong></div>
-            ) : student ? (
-              <div><strong>{student.name}</strong> <span style={{ fontSize: '0.85em', color: '#666', fontWeight: 'normal' }}>(Individual)</span></div>
-            ) : (
-              <div><strong>Unknown</strong></div>
-            )}
+            <div><strong>{group?.name || 'Unknown Group'}</strong></div>
             <div style={{ fontSize: '0.85em', color: '#666' }}>Teacher: {teacher?.name || 'Unknown'}</div>
             <div style={{ fontSize: '0.85em', marginTop: '2px' }}>
               {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

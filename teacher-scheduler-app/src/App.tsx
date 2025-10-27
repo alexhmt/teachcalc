@@ -4,10 +4,11 @@ import './print.css'; // Import print-specific CSS
 import SchedulerCalendar from './components/SchedulerCalendar';
 import TeacherManagement from './components/TeacherManagement';
 import GroupManagement from './components/GroupManagement';
+import StudentManagement from './components/StudentManagement';
 import SettingsManagement from './components/SettingsManagement';
 import { SchedulerProvider } from './context/SchedulerProvider';
 import { Box, Tabs, Tab, AppBar, Toolbar, Typography } from '@mui/material';
-import { CalendarMonth, Person, Group as GroupIcon, Settings as SettingsIcon } from '@mui/icons-material';
+import { CalendarMonth, Person, Group as GroupIcon, School as StudentIcon, Settings as SettingsIcon } from '@mui/icons-material';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -56,6 +57,7 @@ const App: React.FC = () => {
               <Tab icon={<CalendarMonth />} label="Schedule" />
               <Tab icon={<Person />} label="Teachers" />
               <Tab icon={<GroupIcon />} label="Groups" />
+              <Tab icon={<StudentIcon />} label="Students" />
               <Tab icon={<SettingsIcon />} label="Settings" />
             </Tabs>
           </Toolbar>
@@ -71,6 +73,9 @@ const App: React.FC = () => {
           <GroupManagement />
         </TabPanel>
         <TabPanel value={tabValue} index={3}>
+          <StudentManagement />
+        </TabPanel>
+        <TabPanel value={tabValue} index={4}>
           <SettingsManagement />
         </TabPanel>
       </Box>

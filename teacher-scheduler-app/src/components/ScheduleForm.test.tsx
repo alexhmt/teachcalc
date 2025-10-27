@@ -47,10 +47,10 @@ describe('ScheduleForm', () => {
     (useScheduler as jest.Mock).mockReturnValue({
       teachers: mockTeachers,
       groups: mockGroups,
+      students: [], // Now required by ScheduleForm
       scheduledClasses: [],
       addScheduledClass: mockAddScheduledClass,
       updateScheduledClass: mockUpdateScheduledClass,
-      // Other context values like 'students' are not directly used by ScheduleForm
     });
     jest.clearAllMocks(); // Clear mocks before each test
   });
@@ -66,19 +66,21 @@ describe('ScheduleForm', () => {
 
     it('renders form fields correctly', () => {
       expect(screen.getByText('Create New Class')).toBeInTheDocument();
-      expect(screen.getByLabelText(/teacher/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/group/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/^teacher:$/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/group class/i)).toBeInTheDocument(); // Radio button
+      expect(screen.getByLabelText(/individual class/i)).toBeInTheDocument(); // Radio button
+      expect(screen.getByLabelText(/^group:$/i)).toBeInTheDocument(); // More specific
       expect(screen.getByLabelText(/day of the week/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/time/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /create class/i })).toBeInTheDocument();
     });
 
     it('calls addScheduledClass with correct data on submit', async () => {
-      fireEvent.change(screen.getByLabelText(/teacher/i), { target: { value: 't1' } });
-      fireEvent.change(screen.getByLabelText(/group/i), { target: { value: 'g1' } });
+      fireEvent.change(screen.getByLabelText(/^teacher:$/i), { target: { value: 't1' } });
+      fireEvent.change(screen.getByLabelText(/^group:$/i), { target: { value: 'g1' } });
       // Day is Monday (value 1), Time is 09:00 by default (from MOCK_CURRENT_DATE and form defaults)
       fireEvent.change(screen.getByLabelText(/day of the week/i), { target: { value: '1' } }); // Monday
-      fireEvent.change(screen.getByLabelText(/time/i), { target: { value: '09:00' } });
+      fireEvent.change(screen.getByLabelText(/^time:$/i), { target: { value: '09:00' } });
 
       fireEvent.click(screen.getByRole('button', { name: /create class/i }));
 
@@ -87,6 +89,7 @@ describe('ScheduleForm', () => {
         const callArg = mockAddScheduledClass.mock.calls[0][0];
         expect(callArg.teacherId).toBe('t1');
         expect(callArg.groupId).toBe('g1');
+        expect(callArg.studentId).toBeUndefined();
         // Check startTime: Mon Nov 20 2023 09:00:00 (day 1 of week, 09:00 time)
         // MOCK_CURRENT_DATE is already Monday 9am. The form defaults to Monday, 08:00.
         // If we select Monday, 09:00, then startTime should reflect this.
@@ -100,7 +103,7 @@ describe('ScheduleForm', () => {
      it('shows alert if fields are missing', () => {
       const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
       fireEvent.click(screen.getByRole('button', { name: /create class/i }));
-      expect(alertSpy).toHaveBeenCalledWith('Please select a teacher and a group.');
+      expect(alertSpy).toHaveBeenCalledWith('Please select a teacher.');
       alertSpy.mockRestore();
     });
   });
@@ -120,12 +123,12 @@ describe('ScheduleForm', () => {
 
     it('renders form with populated data and "Update Class" button', () => {
       expect(screen.getByText('Edit Class')).toBeInTheDocument();
-      expect(screen.getByLabelText(/teacher/i)).toHaveValue(mockEditingClass.teacherId);
-      expect(screen.getByLabelText(/group/i)).toHaveValue(mockEditingClass.groupId);
+      expect(screen.getByLabelText(/^teacher:$/i)).toHaveValue(mockEditingClass.teacherId);
+      expect(screen.getByLabelText(/^group:$/i)).toHaveValue(mockEditingClass.groupId);
 
       const expectedDay = dfnsGetDay(mockEditingClass.startTime); // Tuesday is 2
       expect(screen.getByLabelText(/day of the week/i)).toHaveValue(expectedDay.toString());
-      expect(screen.getByLabelText(/time/i)).toHaveValue(dfnsFormat(mockEditingClass.startTime, 'HH:mm'));
+      expect(screen.getByLabelText(/^time:$/i)).toHaveValue(dfnsFormat(mockEditingClass.startTime, 'HH:mm'));
       expect(screen.getByRole('button', { name: /update class/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /cancel edit/i })).toBeInTheDocument();
     });
@@ -133,7 +136,7 @@ describe('ScheduleForm', () => {
     it('calls updateScheduledClass with correct data on submit', async () => {
       // Change time to 15:00 on Wednesday (day 3)
       fireEvent.change(screen.getByLabelText(/day of the week/i), { target: { value: '3' } }); // Wednesday
-      fireEvent.change(screen.getByLabelText(/time/i), { target: { value: '15:00' } });
+      fireEvent.change(screen.getByLabelText(/^time:$/i), { target: { value: '15:00' } });
 
       fireEvent.click(screen.getByRole('button', { name: /update class/i }));
 
@@ -143,6 +146,7 @@ describe('ScheduleForm', () => {
         expect(callArg.id).toBe(mockEditingClass.id);
         expect(callArg.teacherId).toBe(mockEditingClass.teacherId); // Teacher wasn't changed
         expect(callArg.groupId).toBe(mockEditingClass.groupId);   // Group wasn't changed
+        expect(callArg.studentId).toBeUndefined(); // No individual student
         expect(dfnsGetDay(callArg.startTime)).toBe(3); // Wednesday
         expect(dfnsFormat(callArg.startTime, 'HH:mm')).toBe('15:00');
         expect(mockOnFormClose).toHaveBeenCalledTimes(1);

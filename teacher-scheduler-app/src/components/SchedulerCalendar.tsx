@@ -31,7 +31,7 @@ const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'S
 const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => `${String(i + 8).padStart(2, '0')}:00`);
 
 const SchedulerCalendar: React.FC = () => {
-  const { scheduledClasses, updateScheduledClass, teachers, groups } = useScheduler();
+  const { scheduledClasses, updateScheduledClass, teachers, groups, students } = useScheduler();
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -103,6 +103,7 @@ const SchedulerCalendar: React.FC = () => {
   }
 
   const groupMap = new Map<string, GroupType>(groups.map(group => [group.id, group]));
+  const studentMap = new Map(students.map(student => [student.id, student]));
 
   return (
     <Box sx={{ p: 2 }}>
@@ -189,11 +190,21 @@ const SchedulerCalendar: React.FC = () => {
                         {...provided.droppableProps}
                       >
                         {classesInSlot.map((scheduledClass, index) => {
-                          const group = groupMap.get(scheduledClass.groupId);
-                          const shouldHighlight =
-                            searchQuery.trim() !== '' && group
-                              ? group.name.toLowerCase().includes(searchQuery.toLowerCase())
-                              : undefined;
+                          const group = scheduledClass.groupId ? groupMap.get(scheduledClass.groupId) : undefined;
+                          const student = scheduledClass.studentId ? studentMap.get(scheduledClass.studentId) : undefined;
+
+                          let shouldHighlight: boolean | undefined = undefined;
+                          if (searchQuery.trim() !== '') {
+                            const query = searchQuery.toLowerCase();
+                            if (group && group.name.toLowerCase().includes(query)) {
+                              shouldHighlight = true;
+                            } else if (student && student.name.toLowerCase().includes(query)) {
+                              shouldHighlight = true;
+                            } else {
+                              shouldHighlight = false;
+                            }
+                          }
+
                           return (
                             <ClassBlock
                               key={scheduledClass.id}

@@ -155,17 +155,17 @@ const SchedulerCalendar: React.FC = () => {
       {/* Calendar Grid */}
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="scheduler-calendar">
-          <div className="day-row header-row">
-            <div className="time-cell header-cell">Time</div>
+          <div className="header-row">
+            <div className="time-col-header">Time</div>
             {DAYS_OF_WEEK.map((day) => (
-              <div key={day} className="day-header header-cell">
+              <div key={day} className="day-header-cell">
                 {day}
               </div>
             ))}
           </div>
           {TIME_SLOTS.map((timeSlot) => (
-            <div key={timeSlot} className="day-row">
-              <div className="time-cell">{timeSlot}</div>
+            <div key={timeSlot} className="time-row">
+              <div className="time-header-cell">{timeSlot}</div>
               {DAYS_OF_WEEK.map((day) => {
                 const droppableId = `cell-${day}-${timeSlot}`;
                 const classesInSlot = currentFilteredClasses.filter((scheduledClass) => {
@@ -184,7 +184,7 @@ const SchedulerCalendar: React.FC = () => {
                   <Droppable droppableId={droppableId} key={droppableId}>
                     {(provided, snapshot) => (
                       <div
-                        className={`day-cell ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
+                        className={`calendar-cell ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                       >

@@ -1,7 +1,14 @@
-import React, { useState, ReactNode, useEffect } from 'react'; // Added useEffect
+import React, { useState, ReactNode, useEffect } from 'react';
 import { SchedulerContext } from './SchedulerContext';
 import { Teacher, Group, Student, ScheduledClass } from '../types';
-import { checkForConflicts } from '../utils/schedulerUtils'; // Import the conflict checker
+import { checkForConflicts } from '../utils/schedulerUtils';
+import {
+  saveToLocalStorage,
+  loadFromLocalStorage,
+  AppData,
+  exportToJSON,
+  clearLocalStorage
+} from '../utils/storageUtils';
 
 interface SchedulerProviderProps {
   children: ReactNode;
@@ -12,32 +19,70 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
   const [groups, setGroups] = useState<Group[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [scheduledClasses, setScheduledClasses] = useState<ScheduledClass[]>([]);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
-  // Mock data for initialization
-  useEffect(() => { // Changed from useState to useEffect for initialization
-    const initialTeachers: Teacher[] = [{ id: 't1', name: 'Dr. Smith' }, { id: 't2', name: 'Prof. Jones' }];
-    const initialStudents: Student[] = [{ id: 's1', name: 'Alice', crmProfileLink: 'link1' }, { id: 's2', name: 'Bob', crmProfileLink: 'link2' }];
-    const initialGroups: Group[] = [{ id: 'g1', name: 'Math 101', teacherId: 't1', studentIds: ['s1', 's2'] }];
-    const startTime = new Date();
-    startTime.setHours(10, 0, 0, 0);
-    const endTime = new Date();
-    endTime.setHours(11, 0, 0, 0);
+  // Load data from LocalStorage or initialize with mock data
+  useEffect(() => {
+    const savedData = loadFromLocalStorage();
 
-    const initialScheduledClasses: ScheduledClass[] = [
-      {
-        id: 'sc1',
-        groupId: 'g1',
-        teacherId: 't1',
-        startTime,
-        endTime
-      }
-    ];
+    if (savedData) {
+      // Load from LocalStorage
+      setTeachers(savedData.teachers);
+      setGroups(savedData.groups);
+      setStudents(savedData.students);
+      setScheduledClasses(savedData.scheduledClasses);
+    } else {
+      // Initialize with mock data
+      const initialTeachers: Teacher[] = [
+        { id: 't1', name: 'Dr. Smith' },
+        { id: 't2', name: 'Prof. Jones' }
+      ];
+      const initialStudents: Student[] = [
+        { id: 's1', name: 'Alice', crmProfileLink: 'link1' },
+        { id: 's2', name: 'Bob', crmProfileLink: 'link2' }
+      ];
+      const initialGroups: Group[] = [
+        { id: 'g1', name: 'Math 101', teacherId: 't1', studentIds: ['s1', 's2'] }
+      ];
+      const startTime = new Date();
+      startTime.setHours(10, 0, 0, 0);
+      const endTime = new Date();
+      endTime.setHours(11, 0, 0, 0);
 
-    setTeachers(initialTeachers);
-    setStudents(initialStudents);
-    setGroups(initialGroups);
-    setScheduledClasses(initialScheduledClasses);
+      const initialScheduledClasses: ScheduledClass[] = [
+        {
+          id: 'sc1',
+          groupId: 'g1',
+          teacherId: 't1',
+          startTime,
+          endTime
+        }
+      ];
+
+      setTeachers(initialTeachers);
+      setStudents(initialStudents);
+      setGroups(initialGroups);
+      setScheduledClasses(initialScheduledClasses);
+    }
+
+    setIsDataLoaded(true);
   }, []);
+
+  // Auto-save to LocalStorage whenever data changes
+  useEffect(() => {
+    if (!isDataLoaded) return; // Don't save during initial load
+
+    const dataToSave: AppData = {
+      teachers,
+      groups,
+      students,
+      scheduledClasses,
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+    };
+
+    saveToLocalStorage(dataToSave);
+  }, [teachers, groups, students, scheduledClasses, isDataLoaded]);
 
   const addScheduledClass = (itemToAdd: ScheduledClass) => {
     // Create a new ID for the class to be added
@@ -113,6 +158,36 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
     })));
   };
 
+  // Data management
+  const exportData = () => {
+    const dataToExport: AppData = {
+      teachers,
+      groups,
+      students,
+      scheduledClasses,
+      version: '1.0',
+      lastModified: new Date().toISOString(),
+    };
+    exportToJSON(dataToExport);
+  };
+
+  const importData = (data: AppData) => {
+    setTeachers(data.teachers);
+    setGroups(data.groups);
+    setStudents(data.students);
+    setScheduledClasses(data.scheduledClasses);
+  };
+
+  const clearAllData = () => {
+    if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+      clearLocalStorage();
+      setTeachers([]);
+      setGroups([]);
+      setStudents([]);
+      setScheduledClasses([]);
+    }
+  };
+
   const contextValue = {
     teachers,
     groups,
@@ -130,6 +205,9 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
     addStudent,
     updateStudent,
     deleteStudent,
+    exportData,
+    importData,
+    clearAllData,
   };
 
   return (

@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import { Teacher, Group, Student, ScheduledClass } from '../types';
+import { AppData } from '../utils/storageUtils';
 
 // 1. Interfaces for Context State
 export interface ISchedulerState {
@@ -27,6 +28,10 @@ export interface ISchedulerContextProps extends ISchedulerState {
   addStudent: (student: Student) => void;
   updateStudent: (student: Student) => void;
   deleteStudent: (id: string) => void;
+  // Data Management
+  exportData: () => void;
+  importData: (data: AppData) => void;
+  clearAllData: () => void;
 }
 
 // 3. React Context with default values
@@ -47,6 +52,9 @@ const defaultState: ISchedulerContextProps = {
   addStudent: () => {},
   updateStudent: () => {},
   deleteStudent: () => {},
+  exportData: () => {},
+  importData: () => {},
+  clearAllData: () => {},
 };
 
 export const SchedulerContext = createContext<ISchedulerContextProps>(defaultState);

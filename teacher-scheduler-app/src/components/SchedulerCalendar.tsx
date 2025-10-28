@@ -3,6 +3,7 @@ import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { useScheduler } from '../context/SchedulerContext';
 import ClassBlock from './ClassBlock';
 import ScheduleForm from './ScheduleForm';
+import TextReportView from './TextReportView';
 import './SchedulerCalendar.css';
 import { ScheduledClass, Group as GroupType } from '../types';
 import { setHours, setMinutes, setSeconds, setMilliseconds, setDay, addHours, getHours, parseISO } from 'date-fns';
@@ -20,8 +21,10 @@ import {
   DialogContent,
   Paper,
   SelectChangeEvent,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
-import { Add as AddIcon, Print as PrintIcon } from '@mui/icons-material';
+import { Add as AddIcon, Print as PrintIcon, ViewWeek as TableIcon, Description as TextIcon } from '@mui/icons-material';
 
 const DAY_NAME_TO_INDEX: { [key: string]: number } = {
   'Воскресенье': 0, 'Понедельник': 1, 'Вторник': 2, 'Среда': 3, 'Четверг': 4, 'Пятница': 5, 'Суббота': 6,
@@ -38,6 +41,7 @@ const SchedulerCalendar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [editingClass, setEditingClass] = useState<ScheduledClass | null>(null);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'text'>('table');
 
   const handleTeacherFilterChange = useCallback((event: SelectChangeEvent) => {
     setSelectedTeacherId(event.target.value);
@@ -76,6 +80,12 @@ const SchedulerCalendar: React.FC = () => {
 
   const handlePrint = useCallback(() => {
     window.print();
+  }, []);
+
+  const handleViewModeChange = useCallback((_event: React.MouseEvent<HTMLElement>, newMode: 'table' | 'text' | null) => {
+    if (newMode !== null) {
+      setViewMode(newMode);
+    }
   }, []);
 
   const onDragEnd = useCallback((result: DropResult) => {
@@ -178,89 +188,114 @@ const SchedulerCalendar: React.FC = () => {
             sx={{ minWidth: 200 }}
           />
 
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            aria-label="режим отображения"
+            sx={{ ml: 'auto' }}
+          >
+            <ToggleButton value="table" aria-label="таблица">
+              <TableIcon sx={{ mr: 1 }} />
+              Таблица
+            </ToggleButton>
+            <ToggleButton value="text" aria-label="текстовый отчёт">
+              <TextIcon sx={{ mr: 1 }} />
+              Текст
+            </ToggleButton>
+          </ToggleButtonGroup>
+
           <Button
             variant="outlined"
             startIcon={<PrintIcon />}
             onClick={handlePrint}
-            sx={{ ml: 'auto' }}
           >
             Печать
           </Button>
         </Box>
       </Paper>
 
-      {/* Calendar Grid */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="scheduler-calendar">
-          <div className="header-row">
-            <div className="time-col-header">Время</div>
-            {DAYS_OF_WEEK.map((day) => (
-              <div key={day} className="day-header-cell">
-                {day}
+      {/* Calendar Grid or Text Report */}
+      {viewMode === 'table' ? (
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="scheduler-calendar">
+            <div className="header-row">
+              <div className="time-col-header">Время</div>
+              {DAYS_OF_WEEK.map((day) => (
+                <div key={day} className="day-header-cell">
+                  {day}
+                </div>
+              ))}
+            </div>
+            {TIME_SLOTS.map((timeSlot) => (
+              <div key={timeSlot} className="time-row">
+                <div className="time-header-cell">{timeSlot}</div>
+                {DAYS_OF_WEEK.map((day) => {
+                  const droppableId = `cell-${day}-${timeSlot}`;
+                  const classesInSlot = currentFilteredClasses.filter((scheduledClass) => {
+                    const startTime =
+                      typeof scheduledClass.startTime === 'string'
+                        ? parseISO(scheduledClass.startTime)
+                        : scheduledClass.startTime;
+                    const classHour = getHours(startTime);
+                    const slotHour = parseInt(timeSlot.split(':')[0], 10);
+                    const dayOfWeek = startTime.getDay();
+                    const dayIndex = DAY_NAME_TO_INDEX[day];
+                    return classHour === slotHour && dayOfWeek === dayIndex;
+                  });
+
+                  return (
+                    <Droppable droppableId={droppableId} key={droppableId}>
+                      {(provided, snapshot) => (
+                        <div
+                          className={`calendar-cell ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                        >
+                          {classesInSlot.map((scheduledClass, index) => {
+                            const group = scheduledClass.groupId ? groupMap.get(scheduledClass.groupId) : undefined;
+                            const student = scheduledClass.studentId ? studentMap.get(scheduledClass.studentId) : undefined;
+
+                            let shouldHighlight: boolean | undefined = undefined;
+                            if (searchQuery.trim() !== '') {
+                              const query = searchQuery.toLowerCase();
+                              if (group && group.name.toLowerCase().includes(query)) {
+                                shouldHighlight = true;
+                              } else if (student && student.name.toLowerCase().includes(query)) {
+                                shouldHighlight = true;
+                              } else {
+                                shouldHighlight = false;
+                              }
+                            }
+
+                            return (
+                              <ClassBlock
+                                key={scheduledClass.id}
+                                scheduledClass={scheduledClass}
+                                index={index}
+                                isHighlighted={shouldHighlight}
+                                onEdit={handleEditClass}
+                              />
+                            );
+                          })}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  );
+                })}
               </div>
             ))}
           </div>
-          {TIME_SLOTS.map((timeSlot) => (
-            <div key={timeSlot} className="time-row">
-              <div className="time-header-cell">{timeSlot}</div>
-              {DAYS_OF_WEEK.map((day) => {
-                const droppableId = `cell-${day}-${timeSlot}`;
-                const classesInSlot = currentFilteredClasses.filter((scheduledClass) => {
-                  const startTime =
-                    typeof scheduledClass.startTime === 'string'
-                      ? parseISO(scheduledClass.startTime)
-                      : scheduledClass.startTime;
-                  const classHour = getHours(startTime);
-                  const slotHour = parseInt(timeSlot.split(':')[0], 10);
-                  const dayOfWeek = startTime.getDay();
-                  const dayIndex = DAY_NAME_TO_INDEX[day];
-                  return classHour === slotHour && dayOfWeek === dayIndex;
-                });
-
-                return (
-                  <Droppable droppableId={droppableId} key={droppableId}>
-                    {(provided, snapshot) => (
-                      <div
-                        className={`calendar-cell ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                      >
-                        {classesInSlot.map((scheduledClass, index) => {
-                          const group = scheduledClass.groupId ? groupMap.get(scheduledClass.groupId) : undefined;
-                          const student = scheduledClass.studentId ? studentMap.get(scheduledClass.studentId) : undefined;
-
-                          let shouldHighlight: boolean | undefined = undefined;
-                          if (searchQuery.trim() !== '') {
-                            const query = searchQuery.toLowerCase();
-                            if (group && group.name.toLowerCase().includes(query)) {
-                              shouldHighlight = true;
-                            } else if (student && student.name.toLowerCase().includes(query)) {
-                              shouldHighlight = true;
-                            } else {
-                              shouldHighlight = false;
-                            }
-                          }
-
-                          return (
-                            <ClassBlock
-                              key={scheduledClass.id}
-                              scheduledClass={scheduledClass}
-                              index={index}
-                              isHighlighted={shouldHighlight}
-                              onEdit={handleEditClass}
-                            />
-                          );
-                        })}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      </DragDropContext>
+        </DragDropContext>
+      ) : (
+        <TextReportView
+          scheduledClasses={currentFilteredClasses}
+          teachers={teachers}
+          groups={groups}
+          students={students}
+        />
+      )}
 
       {/* Floating Action Button */}
       <Fab

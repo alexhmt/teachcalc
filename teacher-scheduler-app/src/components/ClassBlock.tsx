@@ -43,7 +43,8 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
     flexDirection: 'column',
     justifyContent: 'center',
     transition: 'opacity 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-    cursor: onEdit ? 'pointer' : 'grab', // Change cursor if editable
+    cursor: onEdit ? 'pointer' : 'grab',
+    position: 'relative',
   };
 
   let dynamicStyle: React.CSSProperties = {};
@@ -88,7 +89,6 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
               ...dynamicStyle,
               ...draggingStyle,
               ...provided.draggableProps.style,
-              position: 'relative',
             }}
             onClick={handleOnClick}
           >

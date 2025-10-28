@@ -34,7 +34,7 @@ const DAYS_OF_WEEK = ['Понедельник', 'Вторник', 'Среда', 
 const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => `${String(i + 8).padStart(2, '0')}:00`);
 
 const SchedulerCalendar: React.FC = () => {
-  const { scheduledClasses, updateScheduledClass, teachers, groups, students } = useScheduler();
+  const { scheduledClasses, updateScheduledClass, deleteScheduledClass, teachers, groups, students } = useScheduler();
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
@@ -67,6 +67,10 @@ const SchedulerCalendar: React.FC = () => {
     setEditingClass(cls);
     setFormDialogOpen(true);
   }, []);
+
+  const handleDeleteClass = useCallback((cls: ScheduledClass) => {
+    deleteScheduledClass(cls.id);
+  }, [deleteScheduledClass]);
 
   const handleOpenForm = useCallback(() => {
     setEditingClass(null);
@@ -275,6 +279,7 @@ const SchedulerCalendar: React.FC = () => {
                                 index={index}
                                 isHighlighted={shouldHighlight}
                                 onEdit={handleEditClass}
+                                onDelete={handleDeleteClass}
                               />
                             );
                           })}

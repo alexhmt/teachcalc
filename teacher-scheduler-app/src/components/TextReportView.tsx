@@ -1,6 +1,5 @@
 import React from 'react';
 import { ScheduledClass, Teacher, Group, Student } from '../types';
-import { Box, Typography, Paper, Divider } from '@mui/material';
 import { format } from 'date-fns';
 
 interface TextReportViewProps {
@@ -37,19 +36,19 @@ const TextReportView: React.FC<TextReportViewProps> = ({ scheduledClasses, teach
   });
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
-      <Typography variant="h4" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
+    <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
+      <h1 style={{ textAlign: 'center', marginBottom: '30px', fontSize: '24px', fontWeight: 'bold' }}>
         Расписание занятий
-      </Typography>
+      </h1>
 
       {classesByDay.map(({ dayName, classes }) => {
         if (classes.length === 0) return null;
 
         return (
-          <Paper key={dayName} sx={{ p: 3, mb: 3 }} elevation={2}>
-            <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', mb: 2 }}>
+          <div key={dayName} style={{ marginBottom: '30px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1976d2', marginBottom: '15px', borderBottom: '2px solid #1976d2', paddingBottom: '5px' }}>
               {dayName}
-            </Typography>
+            </h2>
 
             {classes.map((cls, index) => {
               const teacher = teacherMap.get(cls.teacherId);
@@ -60,57 +59,48 @@ const TextReportView: React.FC<TextReportViewProps> = ({ scheduledClasses, teach
               const endTime = format(new Date(cls.endTime), 'HH:mm');
 
               return (
-                <Box key={cls.id}>
-                  {index > 0 && <Divider sx={{ my: 2 }} />}
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold', minWidth: '120px' }}>
-                        {startTime} - {endTime}
-                      </Typography>
-                      <Typography variant="h6" sx={{ color: 'text.primary' }}>
-                        {student ? (
-                          <>
-                            {student.name} <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>(Индивидуальное занятие)</Typography>
-                          </>
-                        ) : group ? (
-                          group.name
-                        ) : (
-                          'Неизвестно'
-                        )}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ pl: 2, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                      <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                        <strong>Преподаватель:</strong> {teacher?.name || 'Неизвестно'}
-                      </Typography>
-
-                      {group && group.studentIds && group.studentIds.length > 0 && (
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          <strong>Студенты в группе:</strong>{' '}
-                          {group.studentIds
-                            .map(sid => studentMap.get(sid)?.name || 'Неизвестно')
-                            .join(', ')}
-                        </Typography>
+                <div key={cls.id} style={{ marginBottom: '15px', paddingBottom: '10px', borderBottom: index < classes.length - 1 ? '1px solid #e0e0e0' : 'none' }}>
+                  <div style={{ marginBottom: '5px' }}>
+                    <strong style={{ fontSize: '16px' }}>{startTime} - {endTime}</strong>
+                    <span style={{ marginLeft: '15px', fontSize: '16px' }}>
+                      {student ? (
+                        <>
+                          <strong>{student.name}</strong> <span style={{ color: '#666', fontSize: '14px' }}>(Индивидуальное)</span>
+                        </>
+                      ) : group ? (
+                        <strong>{group.name}</strong>
+                      ) : (
+                        <strong>Неизвестно</strong>
                       )}
-                    </Box>
-                  </Box>
-                </Box>
+                    </span>
+                  </div>
+
+                  <div style={{ marginLeft: '20px', fontSize: '14px', color: '#555' }}>
+                    <div style={{ marginBottom: '3px' }}>
+                      Преподаватель: {teacher?.name || 'Неизвестно'}
+                    </div>
+
+                    {group && group.studentIds && group.studentIds.length > 0 && (
+                      <div style={{ color: '#666', fontSize: '13px' }}>
+                        Студенты: {group.studentIds
+                          .map(sid => studentMap.get(sid)?.name || 'Неизвестно')
+                          .join(', ')}
+                      </div>
+                    )}
+                  </div>
+                </div>
               );
             })}
-          </Paper>
+          </div>
         );
       })}
 
       {scheduledClasses.length === 0 && (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            Нет запланированных занятий
-          </Typography>
-        </Paper>
+        <div style={{ textAlign: 'center', padding: '40px', color: '#999', fontSize: '16px' }}>
+          Нет запланированных занятий
+        </div>
       )}
-    </Box>
+    </div>
   );
 };
 

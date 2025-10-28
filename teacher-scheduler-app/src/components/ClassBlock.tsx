@@ -9,10 +9,11 @@ interface ClassBlockProps {
   scheduledClass: ScheduledClass;
   index: number;
   isHighlighted?: boolean;
-  onEdit?: (scheduledClass: ScheduledClass) => void; // New prop for edit callback
+  onEdit?: (scheduledClass: ScheduledClass) => void;
+  onDelete?: (scheduledClass: ScheduledClass) => void;
 }
 
-const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, index, isHighlighted, onEdit }) => {
+const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, index, isHighlighted, onEdit, onDelete }) => {
   const { teachers, groups, students } = useScheduler();
   const teacherColor = getTeacherColor(scheduledClass.teacherId);
 
@@ -58,6 +59,13 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering edit
+    if (onDelete && window.confirm('Удалить это занятие?')) {
+      onDelete(scheduledClass);
+    }
+  };
+
   return (
     <Draggable draggableId={scheduledClass.id} index={index}>
       {(provided, snapshot) => {
@@ -80,9 +88,39 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
               ...dynamicStyle,
               ...draggingStyle,
               ...provided.draggableProps.style,
+              position: 'relative',
             }}
-            onClick={handleOnClick} // Add onClick handler
+            onClick={handleOnClick}
           >
+            {/* Delete button */}
+            {onDelete && (
+              <button
+                onClick={handleDelete}
+                className="no-print"
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '2px',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: '1px solid #ccc',
+                  borderRadius: '3px',
+                  width: '20px',
+                  height: '20px',
+                  padding: '0',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  lineHeight: '1',
+                  color: '#666',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="Удалить занятие"
+              >
+                ×
+              </button>
+            )}
+
             {/* Display individual student or group */}
             {student ? (
               <div><strong>{student.name}</strong> <span style={{ fontSize: '0.85em', color: '#666', fontWeight: 'normal' }}>(Индивидуальное)</span></div>

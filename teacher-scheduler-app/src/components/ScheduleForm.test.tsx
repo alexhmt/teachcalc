@@ -65,24 +65,24 @@ describe('ScheduleForm', () => {
     });
 
     it('renders form fields correctly', () => {
-      expect(screen.getByText('Create New Class')).toBeInTheDocument();
-      expect(screen.getByLabelText(/^teacher:$/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/group class/i)).toBeInTheDocument(); // Radio button
-      expect(screen.getByLabelText(/individual class/i)).toBeInTheDocument(); // Radio button
-      expect(screen.getByLabelText(/^group:$/i)).toBeInTheDocument(); // More specific
-      expect(screen.getByLabelText(/day of the week/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/time/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /create class/i })).toBeInTheDocument();
+      expect(screen.getByText('Создать занятие')).toBeInTheDocument();
+      expect(screen.getByLabelText(/^преподаватель:$/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/групповое занятие/i)).toBeInTheDocument(); // Radio button
+      expect(screen.getByLabelText(/индивидуальное занятие/i)).toBeInTheDocument(); // Radio button
+      expect(screen.getByLabelText(/^группа:$/i)).toBeInTheDocument(); // More specific
+      expect(screen.getByLabelText(/день недели/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/время/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /создать/i })).toBeInTheDocument();
     });
 
     it('calls addScheduledClass with correct data on submit', async () => {
-      fireEvent.change(screen.getByLabelText(/^teacher:$/i), { target: { value: 't1' } });
-      fireEvent.change(screen.getByLabelText(/^group:$/i), { target: { value: 'g1' } });
+      fireEvent.change(screen.getByLabelText(/^преподаватель:$/i), { target: { value: 't1' } });
+      fireEvent.change(screen.getByLabelText(/^группа:$/i), { target: { value: 'g1' } });
       // Day is Monday (value 1), Time is 09:00 by default (from MOCK_CURRENT_DATE and form defaults)
-      fireEvent.change(screen.getByLabelText(/day of the week/i), { target: { value: '1' } }); // Monday
-      fireEvent.change(screen.getByLabelText(/^time:$/i), { target: { value: '09:00' } });
+      fireEvent.change(screen.getByLabelText(/день недели/i), { target: { value: '1' } }); // Monday
+      fireEvent.change(screen.getByLabelText(/^время:$/i), { target: { value: '09:00' } });
 
-      fireEvent.click(screen.getByRole('button', { name: /create class/i }));
+      fireEvent.click(screen.getByRole('button', { name: /создать/i }));
 
       await waitFor(() => {
         expect(mockAddScheduledClass).toHaveBeenCalledTimes(1);
@@ -102,8 +102,8 @@ describe('ScheduleForm', () => {
 
      it('shows alert if fields are missing', () => {
       const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-      fireEvent.click(screen.getByRole('button', { name: /create class/i }));
-      expect(alertSpy).toHaveBeenCalledWith('Please select a teacher.');
+      fireEvent.click(screen.getByRole('button', { name: /создать/i }));
+      expect(alertSpy).toHaveBeenCalledWith('Пожалуйста, выберите преподавателя.');
       alertSpy.mockRestore();
     });
   });
@@ -122,23 +122,23 @@ describe('ScheduleForm', () => {
     });
 
     it('renders form with populated data and "Update Class" button', () => {
-      expect(screen.getByText('Edit Class')).toBeInTheDocument();
-      expect(screen.getByLabelText(/^teacher:$/i)).toHaveValue(mockEditingClass.teacherId);
-      expect(screen.getByLabelText(/^group:$/i)).toHaveValue(mockEditingClass.groupId);
+      expect(screen.getByText('Редактировать занятие')).toBeInTheDocument();
+      expect(screen.getByLabelText(/^преподаватель:$/i)).toHaveValue(mockEditingClass.teacherId);
+      expect(screen.getByLabelText(/^группа:$/i)).toHaveValue(mockEditingClass.groupId);
 
       const expectedDay = dfnsGetDay(mockEditingClass.startTime); // Tuesday is 2
-      expect(screen.getByLabelText(/day of the week/i)).toHaveValue(expectedDay.toString());
-      expect(screen.getByLabelText(/^time:$/i)).toHaveValue(dfnsFormat(mockEditingClass.startTime, 'HH:mm'));
-      expect(screen.getByRole('button', { name: /update class/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /cancel edit/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/день недели/i)).toHaveValue(expectedDay.toString());
+      expect(screen.getByLabelText(/^время:$/i)).toHaveValue(dfnsFormat(mockEditingClass.startTime, 'HH:mm'));
+      expect(screen.getByRole('button', { name: /обновить/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /отменить/i })).toBeInTheDocument();
     });
 
     it('calls updateScheduledClass with correct data on submit', async () => {
       // Change time to 15:00 on Wednesday (day 3)
-      fireEvent.change(screen.getByLabelText(/day of the week/i), { target: { value: '3' } }); // Wednesday
-      fireEvent.change(screen.getByLabelText(/^time:$/i), { target: { value: '15:00' } });
+      fireEvent.change(screen.getByLabelText(/день недели/i), { target: { value: '3' } }); // Wednesday
+      fireEvent.change(screen.getByLabelText(/^время:$/i), { target: { value: '15:00' } });
 
-      fireEvent.click(screen.getByRole('button', { name: /update class/i }));
+      fireEvent.click(screen.getByRole('button', { name: /обновить/i }));
 
       await waitFor(() => {
         expect(mockUpdateScheduledClass).toHaveBeenCalledTimes(1);
@@ -155,7 +155,7 @@ describe('ScheduleForm', () => {
     });
 
     it('calls onFormClose when cancel button is clicked', () => {
-      fireEvent.click(screen.getByRole('button', { name: /cancel edit/i }));
+      fireEvent.click(screen.getByRole('button', { name: /отменить/i }));
       expect(mockOnFormClose).toHaveBeenCalledTimes(1);
     });
   });

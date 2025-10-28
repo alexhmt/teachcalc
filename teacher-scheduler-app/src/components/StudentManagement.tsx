@@ -74,14 +74,14 @@ const StudentManagement: React.FC = () => {
     const hasIndividualClasses = scheduledClasses.some(sc => sc.studentId === id);
     const studentGroups = groups.filter(g => g.studentIds.includes(id));
 
-    let confirmMessage = 'Are you sure you want to delete this student?';
+    let confirmMessage = 'Вы уверены, что хотите удалить этого студента?';
     if (hasIndividualClasses || studentGroups.length > 0) {
-      confirmMessage += '\n\nThis will also:';
+      confirmMessage += '\n\nЭто также:';
       if (studentGroups.length > 0) {
-        confirmMessage += `\n- Remove student from ${studentGroups.length} group(s)`;
+        confirmMessage += `\n- Удалит студента из ${studentGroups.length} групп(ы)`;
       }
       if (hasIndividualClasses) {
-        confirmMessage += '\n- Delete all individual classes for this student';
+        confirmMessage += '\n- Удалит все индивидуальные занятия для этого студента';
       }
     }
 
@@ -101,13 +101,13 @@ const StudentManagement: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Students Management</Typography>
+        <Typography variant="h5">Управление студентами</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpen}
         >
-          Add Student
+          Добавить студента
         </Button>
       </Box>
 
@@ -115,11 +115,11 @@ const StudentManagement: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>CRM Profile Link</TableCell>
-              <TableCell>Groups</TableCell>
-              <TableCell>Individual Classes</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>Имя</TableCell>
+              <TableCell>Ссылка на профиль CRM</TableCell>
+              <TableCell>Группы</TableCell>
+              <TableCell>Индивидуальные занятия</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -133,7 +133,7 @@ const StudentManagement: React.FC = () => {
                   <TableCell>
                     {student.crmProfileLink ? (
                       <a href={student.crmProfileLink} target="_blank" rel="noopener noreferrer">
-                        View Profile
+                        Посмотреть профиль
                       </a>
                     ) : (
                       '-'
@@ -152,7 +152,7 @@ const StudentManagement: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     {individualCount > 0 ? (
-                      <Chip label={`${individualCount} classes`} size="small" color="primary" />
+                      <Chip label={`${individualCount} занятий`} size="small" color="primary" />
                     ) : (
                       '-'
                     )}
@@ -172,7 +172,7 @@ const StudentManagement: React.FC = () => {
               <TableRow>
                 <TableCell colSpan={5} align="center">
                   <Typography variant="body2" color="text.secondary">
-                    No students yet. Click "Add Student" to create one.
+                    Студентов нет. Нажмите "Добавить студента" для создания.
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -183,11 +183,11 @@ const StudentManagement: React.FC = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingStudent ? 'Edit Student' : 'Add New Student'}</DialogTitle>
+        <DialogTitle>{editingStudent ? 'Редактировать студента' : 'Добавить студента'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <TextField
-              label="Student Name"
+              label="Имя студента"
               value={studentName}
               onChange={(e) => setStudentName(e.target.value)}
               fullWidth
@@ -195,7 +195,7 @@ const StudentManagement: React.FC = () => {
               autoFocus
             />
             <TextField
-              label="CRM Profile Link (optional)"
+              label="Ссылка на профиль CRM (необязательно)"
               value={crmLink}
               onChange={(e) => setCrmLink(e.target.value)}
               fullWidth
@@ -204,9 +204,9 @@ const StudentManagement: React.FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose}>Отменить</Button>
           <Button onClick={handleSave} variant="contained" disabled={!studentName.trim()}>
-            {editingStudent ? 'Save' : 'Add'}
+            {editingStudent ? 'Сохранить' : 'Добавить'}
           </Button>
         </DialogActions>
       </Dialog>

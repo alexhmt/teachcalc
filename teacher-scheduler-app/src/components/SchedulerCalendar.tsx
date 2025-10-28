@@ -24,10 +24,10 @@ import {
 import { Add as AddIcon, Print as PrintIcon } from '@mui/icons-material';
 
 const DAY_NAME_TO_INDEX: { [key: string]: number } = {
-  Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6,
+  'Воскресенье': 0, 'Понедельник': 1, 'Вторник': 2, 'Среда': 3, 'Четверг': 4, 'Пятница': 5, 'Суббота': 6,
 };
 
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAYS_OF_WEEK = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
 const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => `${String(i + 8).padStart(2, '0')}:00`);
 
 const SchedulerCalendar: React.FC = () => {
@@ -130,9 +130,9 @@ const SchedulerCalendar: React.FC = () => {
       <Paper sx={{ p: 2, mb: 2 }} className="no-print">
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
           <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Teacher</InputLabel>
-            <Select value={selectedTeacherId} label="Teacher" onChange={handleTeacherFilterChange}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>Преподаватель</InputLabel>
+            <Select value={selectedTeacherId} label="Преподаватель" onChange={handleTeacherFilterChange}>
+              <MenuItem value="">Все</MenuItem>
               {teachers.map(teacher => (
                 <MenuItem key={teacher.id} value={teacher.id}>
                   {teacher.name}
@@ -142,14 +142,14 @@ const SchedulerCalendar: React.FC = () => {
           </FormControl>
 
           <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Group</InputLabel>
+            <InputLabel>Группа</InputLabel>
             <Select
               value={selectedGroupId}
-              label="Group"
+              label="Группа"
               onChange={handleGroupFilterChange}
               disabled={!!selectedStudentId}
             >
-              <MenuItem value="">All</MenuItem>
+              <MenuItem value="">Все</MenuItem>
               {groups.map(group => (
                 <MenuItem key={group.id} value={group.id}>
                   {group.name}
@@ -159,9 +159,9 @@ const SchedulerCalendar: React.FC = () => {
           </FormControl>
 
           <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Student</InputLabel>
-            <Select value={selectedStudentId} label="Student" onChange={handleStudentFilterChange}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>Студент</InputLabel>
+            <Select value={selectedStudentId} label="Студент" onChange={handleStudentFilterChange}>
+              <MenuItem value="">Все</MenuItem>
               {students.map(student => (
                 <MenuItem key={student.id} value={student.id}>
                   {student.name}
@@ -171,8 +171,8 @@ const SchedulerCalendar: React.FC = () => {
           </FormControl>
 
           <TextField
-            label="Search"
-            placeholder="Enter name..."
+            label="Поиск"
+            placeholder="Введите имя..."
             value={searchQuery}
             onChange={handleSearchQueryChange}
             sx={{ minWidth: 200 }}
@@ -184,7 +184,7 @@ const SchedulerCalendar: React.FC = () => {
             onClick={handlePrint}
             sx={{ ml: 'auto' }}
           >
-            Print
+            Печать
           </Button>
         </Box>
       </Paper>
@@ -193,7 +193,7 @@ const SchedulerCalendar: React.FC = () => {
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="scheduler-calendar">
           <div className="header-row">
-            <div className="time-col-header">Time</div>
+            <div className="time-col-header">Время</div>
             {DAYS_OF_WEEK.map((day) => (
               <div key={day} className="day-header-cell">
                 {day}
@@ -285,7 +285,7 @@ const SchedulerCalendar: React.FC = () => {
         fullWidth
         className="no-print"
       >
-        <DialogTitle>{editingClass ? 'Edit Class' : 'Add New Class'}</DialogTitle>
+        <DialogTitle>{editingClass ? 'Редактировать занятие' : 'Добавить занятие'}</DialogTitle>
         <DialogContent>
           <ScheduleForm editingClass={editingClass} onFormClose={handleFormClose} />
         </DialogContent>

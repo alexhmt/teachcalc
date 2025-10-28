@@ -88,31 +88,31 @@ const GroupManagement: React.FC = () => {
   }, []);
 
   const handleDelete = useCallback((id: string) => {
-    if (window.confirm('Are you sure you want to delete this group? This will also remove all scheduled classes for this group.')) {
+    if (window.confirm('Вы уверены, что хотите удалить эту группу? Это также удалит все запланированные занятия для этой группы.')) {
       deleteGroup(id);
     }
   }, [deleteGroup]);
 
   const getTeacherName = (teacherId: string) => {
     const teacher = teachers.find(t => t.id === teacherId);
-    return teacher ? teacher.name : 'Unknown';
+    return teacher ? teacher.name : 'Неизвестно';
   };
 
   const getStudentName = (studentId: string) => {
     const student = students.find(s => s.id === studentId);
-    return student ? student.name : 'Unknown';
+    return student ? student.name : 'Неизвестно';
   };
 
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Groups Management</Typography>
+        <Typography variant="h5">Управление группами</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpen}
         >
-          Add Group
+          Добавить группу
         </Button>
       </Box>
 
@@ -121,10 +121,10 @@ const GroupManagement: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Group Name</TableCell>
-              <TableCell>Teacher</TableCell>
-              <TableCell>Students</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>Название группы</TableCell>
+              <TableCell>Преподаватель</TableCell>
+              <TableCell>Студенты</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -141,7 +141,7 @@ const GroupManagement: React.FC = () => {
                       ))}
                     </Box>
                   ) : (
-                    <Typography variant="body2" color="text.secondary">No students</Typography>
+                    <Typography variant="body2" color="text.secondary">Нет студентов</Typography>
                   )}
                 </TableCell>
                 <TableCell align="right">
@@ -157,7 +157,7 @@ const GroupManagement: React.FC = () => {
             {groups.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center">
-                  No groups found. Click "Add Group" to create one.
+                  Групп нет. Нажмите "Добавить группу" для создания.
                 </TableCell>
               </TableRow>
             )}
@@ -166,12 +166,12 @@ const GroupManagement: React.FC = () => {
       </TableContainer>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingGroup ? 'Edit Group' : 'Add New Group'}</DialogTitle>
+        <DialogTitle>{editingGroup ? 'Редактировать группу' : 'Добавить группу'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
               autoFocus
-              label="Group Name"
+              label="Название группы"
               type="text"
               fullWidth
               variant="outlined"
@@ -179,14 +179,14 @@ const GroupManagement: React.FC = () => {
               onChange={(e) => setGroupName(e.target.value)}
             />
             <FormControl fullWidth>
-              <InputLabel>Teacher</InputLabel>
+              <InputLabel>Преподаватель</InputLabel>
               <Select
                 value={selectedTeacherId}
-                label="Teacher"
+                label="Преподаватель"
                 onChange={(e) => setSelectedTeacherId(e.target.value)}
               >
                 <MenuItem value="">
-                  <em>Select a teacher</em>
+                  <em>Выберите преподавателя</em>
                 </MenuItem>
                 {teachers.map((teacher) => (
                   <MenuItem key={teacher.id} value={teacher.id}>
@@ -196,12 +196,12 @@ const GroupManagement: React.FC = () => {
               </Select>
             </FormControl>
             <FormControl fullWidth>
-              <InputLabel>Students</InputLabel>
+              <InputLabel>Студенты</InputLabel>
               <Select
                 multiple
                 value={selectedStudentIds}
                 onChange={handleStudentChange}
-                input={<OutlinedInput label="Students" />}
+                input={<OutlinedInput label="Студенты" />}
                 renderValue={(selected) => (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                     {selected.map((value) => (
@@ -220,13 +220,13 @@ const GroupManagement: React.FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose}>Отменить</Button>
           <Button
             onClick={handleSave}
             variant="contained"
             disabled={!groupName.trim() || !selectedTeacherId}
           >
-            {editingGroup ? 'Update' : 'Add'}
+            {editingGroup ? 'Обновить' : 'Добавить'}
           </Button>
         </DialogActions>
       </Dialog>

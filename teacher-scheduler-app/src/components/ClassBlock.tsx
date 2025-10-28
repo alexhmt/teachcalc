@@ -85,13 +85,13 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
           >
             {/* Display individual student or group */}
             {student ? (
-              <div><strong>{student.name}</strong> <span style={{ fontSize: '0.85em', color: '#666', fontWeight: 'normal' }}>(Individual)</span></div>
+              <div><strong>{student.name}</strong> <span style={{ fontSize: '0.85em', color: '#666', fontWeight: 'normal' }}>(Индивидуальное)</span></div>
             ) : group ? (
               <div><strong>{group.name}</strong></div>
             ) : (
-              <div><strong>Unknown</strong></div>
+              <div><strong>Неизвестно</strong></div>
             )}
-            <div style={{ fontSize: '0.85em', color: '#666' }}>Teacher: {teacher?.name || 'Unknown'}</div>
+            <div style={{ fontSize: '0.85em', color: '#666' }}>Преподаватель: {teacher?.name || 'Неизвестно'}</div>
             <div style={{ fontSize: '0.85em', marginTop: '2px' }}>
               {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>

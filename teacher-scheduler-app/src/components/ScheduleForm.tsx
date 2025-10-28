@@ -4,9 +4,9 @@ import { ScheduledClass } from '../types';
 import { set, addHours, setDay as dfnsSetDay, getDay as dfnsGetDay, format as dfnsFormat, parseISO } from 'date-fns'; // Added getDay, format, parseISO
 
 const DAYS_OF_WEEK_OPTIONS = [
-  { value: 1, label: 'Monday' }, { value: 2, label: 'Tuesday' }, { value: 3, label: 'Wednesday' },
-  { value: 4, label: 'Thursday' }, { value: 5, label: 'Friday' }, { value: 6, label: 'Saturday' },
-  { value: 0, label: 'Sunday' },
+  { value: 1, label: 'Понедельник' }, { value: 2, label: 'Вторник' }, { value: 3, label: 'Среда' },
+  { value: 4, label: 'Четверг' }, { value: 5, label: 'Пятница' }, { value: 6, label: 'Суббота' },
+  { value: 0, label: 'Воскресенье' },
 ];
 
 const TIME_SLOTS_OPTIONS = Array.from({ length: 13 }, (_, i) => {
@@ -66,15 +66,15 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
 
     // Validation
     if (!selectedTeacherId) {
-      alert('Please select a teacher.');
+      alert('Пожалуйста, выберите преподавателя.');
       return;
     }
     if (classType === 'group' && !selectedGroupId) {
-      alert('Please select a group.');
+      alert('Пожалуйста, выберите группу.');
       return;
     }
     if (classType === 'individual' && !selectedStudentId) {
-      alert('Please select a student.');
+      alert('Пожалуйста, выберите студента.');
       return;
     }
 
@@ -134,18 +134,18 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
 
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
-      <h3>{isEditMode ? 'Edit Class' : 'Create New Class'}</h3>
+      <h3>{isEditMode ? 'Редактировать занятие' : 'Создать занятие'}</h3>
       <div>
-        <label htmlFor="teacher-select" style={{display: 'block', marginBottom: '5px'}}>Teacher:</label>
+        <label htmlFor="teacher-select" style={{display: 'block', marginBottom: '5px'}}>Преподаватель:</label>
         <select id="teacher-select" value={selectedTeacherId} onChange={e => setSelectedTeacherId(e.target.value)} required style={selectStyle}>
-          <option value="" disabled={isEditMode}>Select Teacher</option>
+          <option value="" disabled={isEditMode}>Выберите преподавателя</option>
           {teachers.map(teacher => <option key={teacher.id} value={teacher.id}>{teacher.name}</option>)}
         </select>
       </div>
 
       {/* Class Type Selection */}
       <div>
-        <label style={{display: 'block', marginBottom: '5px'}}>Class Type:</label>
+        <label style={{display: 'block', marginBottom: '5px'}}>Тип занятия:</label>
         <div style={{display: 'flex', gap: '15px'}}>
           <label style={{display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
             <input
@@ -155,7 +155,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
               onChange={e => setClassType(e.target.value as 'group' | 'individual')}
               style={{marginRight: '5px'}}
             />
-            Group Class
+            Групповое занятие
           </label>
           <label style={{display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
             <input
@@ -165,7 +165,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
               onChange={e => setClassType(e.target.value as 'group' | 'individual')}
               style={{marginRight: '5px'}}
             />
-            Individual Class
+            Индивидуальное занятие
           </label>
         </div>
       </div>
@@ -173,38 +173,38 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
       {/* Conditional: Group or Student Selection */}
       {classType === 'group' ? (
         <div>
-          <label htmlFor="group-select" style={{display: 'block', marginBottom: '5px'}}>Group:</label>
+          <label htmlFor="group-select" style={{display: 'block', marginBottom: '5px'}}>Группа:</label>
           <select id="group-select" value={selectedGroupId} onChange={e => setSelectedGroupId(e.target.value)} required style={selectStyle}>
-            <option value="" disabled={isEditMode}>Select Group</option>
+            <option value="" disabled={isEditMode}>Выберите группу</option>
             {groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
           </select>
         </div>
       ) : (
         <div>
-          <label htmlFor="student-select" style={{display: 'block', marginBottom: '5px'}}>Student:</label>
+          <label htmlFor="student-select" style={{display: 'block', marginBottom: '5px'}}>Студент:</label>
           <select id="student-select" value={selectedStudentId} onChange={e => setSelectedStudentId(e.target.value)} required style={selectStyle}>
-            <option value="" disabled={isEditMode}>Select Student</option>
+            <option value="" disabled={isEditMode}>Выберите студента</option>
             {students.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}
           </select>
         </div>
       )}
 
       <div>
-        <label htmlFor="day-select" style={{display: 'block', marginBottom: '5px'}}>Day of the Week:</label>
+        <label htmlFor="day-select" style={{display: 'block', marginBottom: '5px'}}>День недели:</label>
         <select id="day-select" value={selectedDay} onChange={e => setSelectedDay(parseInt(e.target.value, 10))} required style={selectStyle}>
           {DAYS_OF_WEEK_OPTIONS.map(day => <option key={day.value} value={day.value}>{day.label}</option>)}
         </select>
       </div>
       <div>
-        <label htmlFor="time-select" style={{display: 'block', marginBottom: '5px'}}>Time:</label>
+        <label htmlFor="time-select" style={{display: 'block', marginBottom: '5px'}}>Время:</label>
         <select id="time-select" value={selectedTime} onChange={e => setSelectedTime(e.target.value)} required style={selectStyle}>
           {TIME_SLOTS_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}
         </select>
       </div>
-      <button type="submit" style={buttonStyle}>{isEditMode ? 'Update Class' : 'Create Class'}</button>
+      <button type="submit" style={buttonStyle}>{isEditMode ? 'Обновить' : 'Создать'}</button>
       {isEditMode && (
         <button type="button" onClick={onFormClose} style={cancelButtonStyle}>
-          Cancel Edit
+          Отменить
         </button>
       )}
     </form>

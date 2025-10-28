@@ -45,7 +45,7 @@ const App: React.FC = () => {
         <AppBar position="static" className="no-print">
           <Toolbar sx={{ minHeight: '56px !important' }}>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              Teacher Scheduler
+              Планировщик занятий
             </Typography>
             <Tabs
               value={tabValue}
@@ -54,11 +54,11 @@ const App: React.FC = () => {
               indicatorColor="secondary"
               sx={{ ml: 'auto' }}
             >
-              <Tab icon={<CalendarMonth />} label="Schedule" />
-              <Tab icon={<Person />} label="Teachers" />
-              <Tab icon={<GroupIcon />} label="Groups" />
-              <Tab icon={<StudentIcon />} label="Students" />
-              <Tab icon={<SettingsIcon />} label="Settings" />
+              <Tab icon={<CalendarMonth />} label="Расписание" />
+              <Tab icon={<Person />} label="Преподаватели" />
+              <Tab icon={<GroupIcon />} label="Группы" />
+              <Tab icon={<StudentIcon />} label="Студенты" />
+              <Tab icon={<SettingsIcon />} label="Настройки" />
             </Tabs>
           </Toolbar>
         </AppBar>

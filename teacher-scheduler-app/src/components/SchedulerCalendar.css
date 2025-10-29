@@ -69,3 +69,50 @@
 .scheduled-items-container h3 {
   margin-top: 0;
 }
+
+/* Print styles */
+@media print {
+  /* Hide non-printable elements */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Optimize page breaks */
+  .scheduler-calendar {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure text report pages break nicely */
+  .MuiPaper-root {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 20px;
+  }
+
+  /* Remove shadows and optimize colors for print */
+  .MuiPaper-root {
+    box-shadow: none !important;
+    border: 1px solid #ccc;
+  }
+
+  /* Adjust font sizes for better readability */
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Ensure proper spacing */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  /* Optimize table for print */
+  .scheduler-calendar {
+    width: 100%;
+    font-size: 10pt;
+  }
+
+  .calendar-cell {
+    min-height: 40px;
+  }
+}

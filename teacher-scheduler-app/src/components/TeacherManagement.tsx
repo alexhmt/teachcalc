@@ -61,7 +61,7 @@ const TeacherManagement: React.FC = () => {
   }, [teacherName, editingTeacher, addTeacher, updateTeacher, handleClose]);
 
   const handleDelete = useCallback((id: string) => {
-    if (window.confirm('Are you sure you want to delete this teacher? This will also remove all their groups and classes.')) {
+    if (window.confirm('Вы уверены, что хотите удалить этого преподавателя? Это также удалит все его группы и занятия.')) {
       deleteTeacher(id);
     }
   }, [deleteTeacher]);
@@ -69,13 +69,13 @@ const TeacherManagement: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Teachers Management</Typography>
+        <Typography variant="h5">Управление преподавателями</Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpen}
         >
-          Add Teacher
+          Добавить преподавателя
         </Button>
       </Box>
 
@@ -84,8 +84,8 @@ const TeacherManagement: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>Имя</TableCell>
+              <TableCell align="right">Действия</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -106,7 +106,7 @@ const TeacherManagement: React.FC = () => {
             {teachers.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} align="center">
-                  No teachers found. Click "Add Teacher" to create one.
+                  Преподавателей нет. Нажмите "Добавить преподавателя" для создания.
                 </TableCell>
               </TableRow>
             )}
@@ -115,12 +115,12 @@ const TeacherManagement: React.FC = () => {
       </TableContainer>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingTeacher ? 'Edit Teacher' : 'Add New Teacher'}</DialogTitle>
+        <DialogTitle>{editingTeacher ? 'Редактировать преподавателя' : 'Добавить преподавателя'}</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Teacher Name"
+            label="Имя преподавателя"
             type="text"
             fullWidth
             variant="outlined"
@@ -134,9 +134,9 @@ const TeacherManagement: React.FC = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose}>Отменить</Button>
           <Button onClick={handleSave} variant="contained" disabled={!teacherName.trim()}>
-            {editingTeacher ? 'Update' : 'Add'}
+            {editingTeacher ? 'Обновить' : 'Добавить'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -9,15 +9,17 @@ interface ClassBlockProps {
   scheduledClass: ScheduledClass;
   index: number;
   isHighlighted?: boolean;
-  onEdit?: (scheduledClass: ScheduledClass) => void; // New prop for edit callback
+  onEdit?: (scheduledClass: ScheduledClass) => void;
+  onDelete?: (scheduledClass: ScheduledClass) => void;
 }
 
-const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, index, isHighlighted, onEdit }) => {
-  const { teachers, groups } = useScheduler();
+const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, index, isHighlighted, onEdit, onDelete }) => {
+  const { teachers, groups, students } = useScheduler();
   const teacherColor = getTeacherColor(scheduledClass.teacherId);
 
   const teacher = teachers.find(t => t.id === scheduledClass.teacherId);
-  const group = groups.find(g => g.id === scheduledClass.groupId);
+  const group = scheduledClass.groupId ? groups.find(g => g.id === scheduledClass.groupId) : undefined;
+  const student = scheduledClass.studentId ? students.find(s => s.id === scheduledClass.studentId) : undefined;
 
   const startTime = typeof scheduledClass.startTime === 'string'
     ? parseISO(scheduledClass.startTime)
@@ -41,7 +43,8 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
     flexDirection: 'column',
     justifyContent: 'center',
     transition: 'opacity 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-    cursor: onEdit ? 'pointer' : 'grab', // Change cursor if editable
+    cursor: onEdit ? 'pointer' : 'grab',
+    position: 'relative',
   };
 
   let dynamicStyle: React.CSSProperties = {};
@@ -54,6 +57,13 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
   const handleOnClick = () => {
     if (onEdit) {
       onEdit(scheduledClass);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering edit
+    if (onDelete && window.confirm('Удалить это занятие?')) {
+      onDelete(scheduledClass);
     }
   };
 
@@ -80,10 +90,46 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
               ...draggingStyle,
               ...provided.draggableProps.style,
             }}
-            onClick={handleOnClick} // Add onClick handler
+            onClick={handleOnClick}
           >
-            <div><strong>{group?.name || 'Unknown Group'}</strong></div>
-            <div style={{ fontSize: '0.85em', color: '#666' }}>Teacher: {teacher?.name || 'Unknown'}</div>
+            {/* Delete button */}
+            {onDelete && (
+              <button
+                onClick={handleDelete}
+                className="no-print"
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '2px',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: '1px solid #ccc',
+                  borderRadius: '3px',
+                  width: '20px',
+                  height: '20px',
+                  padding: '0',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  lineHeight: '1',
+                  color: '#666',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="Удалить занятие"
+              >
+                ×
+              </button>
+            )}
+
+            {/* Display individual student or group */}
+            {student ? (
+              <div><strong>{student.name}</strong> <span style={{ fontSize: '0.85em', color: '#666', fontWeight: 'normal' }}>(Индивидуальное)</span></div>
+            ) : group ? (
+              <div><strong>{group.name}</strong></div>
+            ) : (
+              <div><strong>Неизвестно</strong></div>
+            )}
+            <div style={{ fontSize: '0.85em', color: '#666' }}>Преподаватель: {teacher?.name || 'Неизвестно'}</div>
             <div style={{ fontSize: '0.85em', marginTop: '2px' }}>
               {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>

@@ -3,6 +3,6 @@ import App from './App';
 
 test('renders Teacher Scheduler heading', () => {
   render(<App />);
-  const headingElement = screen.getByText(/teacher scheduler/i);
+  const headingElement = screen.getByText(/Планировщик занятий/i);
   expect(headingElement).toBeInTheDocument();
 });

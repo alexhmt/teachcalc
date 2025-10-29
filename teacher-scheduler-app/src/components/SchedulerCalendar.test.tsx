@@ -49,6 +49,7 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
     (useScheduler as jest.Mock).mockReturnValue({
       teachers: [{id: 't1', name: 'Teacher 1'}],
       groups: [{id: 'g1', name: 'Group 1', teacherId: 't1', studentIds: []}],
+      students: [], // Added students array
       scheduledClasses: [...mockScheduledClasses],
       updateScheduledClass: mockUpdateScheduledClass,
     });
@@ -59,8 +60,8 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
   it('should update class time correctly on a valid drop into a new cell', () => {
     const result: DropResult = {
       draggableId: 'class1',
-      source: { droppableId: 'cell-Monday-09:00', index: 0 },
-      destination: { droppableId: 'cell-Tuesday-10:00', index: 0 },
+      source: { droppableId: 'cell-Понедельник-09:00', index: 0 },
+      destination: { droppableId: 'cell-Вторник-10:00', index: 0 },
       reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
     };
 
@@ -86,7 +87,7 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
   it('should not call updateScheduledClass if destination is null', () => {
     const result: DropResult = {
       draggableId: 'class1',
-      source: { droppableId: 'cell-Monday-09:00', index: 0 },
+      source: { droppableId: 'cell-Понедельник-09:00', index: 0 },
       destination: null,
       reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
     };
@@ -99,8 +100,8 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
   it('should not call updateScheduledClass if dropped in the same place (same cell, same index)', () => {
     const result: DropResult = {
       draggableId: 'class1',
-      source: { droppableId: 'cell-Monday-09:00', index: 0 },
-      destination: { droppableId: 'cell-Monday-09:00', index: 0 },
+      source: { droppableId: 'cell-Понедельник-09:00', index: 0 },
+      destination: { droppableId: 'cell-Понедельник-09:00', index: 0 },
       reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
     };
      act(() => {
@@ -112,8 +113,8 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
   it('should not call updateScheduledClass if draggableId is not found in scheduledClasses', () => {
     const result: DropResult = {
       draggableId: 'nonExistentClass',
-      source: { droppableId: 'cell-Monday-09:00', index: 0 },
-      destination: { droppableId: 'cell-Tuesday-10:00', index: 0 },
+      source: { droppableId: 'cell-Понедельник-09:00', index: 0 },
+      destination: { droppableId: 'cell-Вторник-10:00', index: 0 },
       reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
     };
     act(() => {
@@ -125,7 +126,7 @@ describe('SchedulerCalendar - onDragEnd Logic', () => {
   it('should not call updateScheduledClass if destination droppableId is not a cell format', () => {
     const result: DropResult = {
       draggableId: 'class1',
-      source: { droppableId: 'cell-Monday-09:00', index: 0 },
+      source: { droppableId: 'cell-Понедельник-09:00', index: 0 },
       destination: { droppableId: 'some-other-area', index: 0 },
       reason: 'DROP', type: 'DEFAULT', mode: 'FLUID',
     };

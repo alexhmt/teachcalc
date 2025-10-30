@@ -20,7 +20,7 @@ import {
   Typography,
   Chip,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Upload as UploadIcon } from '@mui/icons-material';
 import ConfirmDialog from './ConfirmDialog';
 import { useSnackbar } from 'notistack';
 
@@ -33,6 +33,8 @@ const StudentManagement: React.FC = () => {
   const [crmLink, setCrmLink] = useState('');
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [bulkImportText, setBulkImportText] = useState('');
 
   const handleOpen = useCallback(() => {
     setOpen(true);
@@ -126,17 +128,114 @@ const StudentManagement: React.FC = () => {
     return scheduledClasses.filter(sc => sc.studentId === studentId).length;
   };
 
+  const handleBulkImportOpen = useCallback(() => {
+    setBulkImportOpen(true);
+    setBulkImportText('');
+  }, []);
+
+  const handleBulkImportClose = useCallback(() => {
+    setBulkImportOpen(false);
+    setBulkImportText('');
+  }, []);
+
+  const handleBulkImportSave = useCallback(() => {
+    if (!bulkImportText.trim()) {
+      enqueueSnackbar('Введите список студентов', { variant: 'error' });
+      return;
+    }
+
+    const lines = bulkImportText.split('\n').filter(line => line.trim());
+    let addedCount = 0;
+    let skippedCount = 0;
+    const errors: string[] = [];
+
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return;
+
+      // Parse line: "ФИО" or "ФИО, URL" or "ФИО|URL"
+      let name = '';
+      let url = '';
+
+      if (trimmedLine.includes('|')) {
+        const parts = trimmedLine.split('|').map(p => p.trim());
+        name = parts[0];
+        url = parts[1] || '';
+      } else if (trimmedLine.includes(',')) {
+        const parts = trimmedLine.split(',').map(p => p.trim());
+        name = parts[0];
+        url = parts[1] || '';
+      } else {
+        name = trimmedLine;
+      }
+
+      if (!name) {
+        errors.push(`Строка ${index + 1}: отсутствует ФИО`);
+        skippedCount++;
+        return;
+      }
+
+      // Check for duplicate
+      const isDuplicate = students.some(
+        s => s.name.toLowerCase() === name.toLowerCase()
+      );
+
+      if (isDuplicate) {
+        errors.push(`Строка ${index + 1}: студент "${name}" уже существует`);
+        skippedCount++;
+        return;
+      }
+
+      // Add student
+      const newStudent: Student = {
+        id: `s${Date.now()}_${index}`,
+        name,
+        crmProfileLink: url,
+      };
+      addStudent(newStudent);
+      addedCount++;
+    });
+
+    // Show results
+    if (addedCount > 0) {
+      enqueueSnackbar(`Добавлено студентов: ${addedCount}`, { variant: 'success' });
+    }
+    if (skippedCount > 0) {
+      enqueueSnackbar(`Пропущено: ${skippedCount}`, { variant: 'warning' });
+    }
+    if (errors.length > 0 && errors.length <= 3) {
+      errors.forEach(error => {
+        enqueueSnackbar(error, { variant: 'error' });
+      });
+    } else if (errors.length > 3) {
+      enqueueSnackbar(`Ошибок: ${errors.length}. Проверьте формат данных.`, { variant: 'error' });
+    }
+
+    if (addedCount > 0) {
+      handleBulkImportClose();
+    }
+  }, [bulkImportText, students, addStudent, enqueueSnackbar, handleBulkImportClose]);
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5">Управление студентами</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpen}
-        >
-          Добавить студента
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            startIcon={<UploadIcon />}
+            onClick={handleBulkImportOpen}
+          >
+            Массовое добавление
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleOpen}
+          >
+            Добавить студента
+          </Button>
+        </Box>
       </Box>
 
       <TableContainer component={Paper}>
@@ -247,6 +346,47 @@ const StudentManagement: React.FC = () => {
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
       />
+
+      {/* Bulk Import Dialog */}
+      <Dialog open={bulkImportOpen} onClose={handleBulkImportClose} maxWidth="md" fullWidth>
+        <DialogTitle>Массовое добавление студентов</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Введите список студентов, каждый студент на новой строке.
+              <br />
+              <strong>Формат:</strong>
+              <br />
+              • Только ФИО: <code>Иванов Иван Иванович</code>
+              <br />
+              • ФИО с CRM URL: <code>Иванов Иван Иванович, https://crm.example.com/123</code>
+              <br />
+              • Или с разделителем |: <code>Иванов Иван Иванович | https://crm.example.com/123</code>
+            </Typography>
+            <TextField
+              label="Список студентов"
+              multiline
+              rows={12}
+              fullWidth
+              value={bulkImportText}
+              onChange={(e) => setBulkImportText(e.target.value)}
+              placeholder={`Иванов Иван Иванович\nПетров Петр Петрович, https://crm.example.com/123\nСидоров Сидор Сидорович | https://crm.example.com/456`}
+              variant="outlined"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleBulkImportClose}>Отменить</Button>
+          <Button
+            onClick={handleBulkImportSave}
+            variant="contained"
+            startIcon={<UploadIcon />}
+            disabled={!bulkImportText.trim()}
+          >
+            Импортировать
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

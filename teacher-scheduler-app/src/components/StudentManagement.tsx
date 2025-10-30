@@ -65,7 +65,7 @@ const StudentManagement: React.FC = () => {
 
     // Check for duplicates
     const isDuplicate = students.some(
-      s => s.name.toLowerCase() === studentName.trim().toLowerCase() && s.id !== editingStudent?.id
+      s => s.name.trim().toLowerCase() === studentName.trim().toLowerCase() && s.id !== editingStudent?.id
     );
     if (isDuplicate) {
       enqueueSnackbar('Студент с таким именем уже существует', { variant: 'error' });
@@ -177,7 +177,7 @@ const StudentManagement: React.FC = () => {
 
       // Check for duplicate
       const isDuplicate = students.some(
-        s => s.name.toLowerCase() === name.toLowerCase()
+        s => s.name.trim().toLowerCase() === name.toLowerCase()
       );
 
       if (isDuplicate) {

@@ -77,7 +77,7 @@ const GroupManagement: React.FC = () => {
 
     // Check for duplicates
     const isDuplicate = groups.some(
-      g => g.name.toLowerCase() === groupName.trim().toLowerCase() && g.id !== editingGroup?.id
+      g => g.name.trim().toLowerCase() === groupName.trim().toLowerCase() && g.id !== editingGroup?.id
     );
     if (isDuplicate) {
       enqueueSnackbar('Группа с таким названием уже существует', { variant: 'error' });

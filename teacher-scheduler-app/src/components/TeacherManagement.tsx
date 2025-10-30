@@ -58,7 +58,7 @@ const TeacherManagement: React.FC = () => {
 
     // Check for duplicates
     const isDuplicate = teachers.some(
-      t => t.name.toLowerCase() === teacherName.trim().toLowerCase() && t.id !== editingTeacher?.id
+      t => t.name.trim().toLowerCase() === teacherName.trim().toLowerCase() && t.id !== editingTeacher?.id
     );
     if (isDuplicate) {
       enqueueSnackbar('Преподаватель с таким именем уже существует', { variant: 'error' });

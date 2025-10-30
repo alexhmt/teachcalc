@@ -21,13 +21,18 @@ import {
   Chip,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import ConfirmDialog from './ConfirmDialog';
+import { useSnackbar } from 'notistack';
 
 const StudentManagement: React.FC = () => {
   const { students, groups, scheduledClasses, addStudent, updateStudent, deleteStudent } = useScheduler();
+  const { enqueueSnackbar } = useSnackbar();
   const [open, setOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [studentName, setStudentName] = useState('');
   const [crmLink, setCrmLink] = useState('');
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
 
   const handleOpen = useCallback(() => {
     setOpen(true);
@@ -51,44 +56,67 @@ const StudentManagement: React.FC = () => {
   }, []);
 
   const handleSave = useCallback(() => {
-    if (!studentName.trim()) return;
+    if (!studentName.trim()) {
+      enqueueSnackbar('Имя студента не может быть пустым', { variant: 'error' });
+      return;
+    }
+
+    // Check for duplicates
+    const isDuplicate = students.some(
+      s => s.name.toLowerCase() === studentName.trim().toLowerCase() && s.id !== editingStudent?.id
+    );
+    if (isDuplicate) {
+      enqueueSnackbar('Студент с таким именем уже существует', { variant: 'error' });
+      return;
+    }
 
     if (editingStudent) {
       updateStudent({
         ...editingStudent,
-        name: studentName,
-        crmProfileLink: crmLink,
+        name: studentName.trim(),
+        crmProfileLink: crmLink.trim(),
       });
     } else {
       const newStudent: Student = {
         id: `s${Date.now()}`,
-        name: studentName,
-        crmProfileLink: crmLink,
+        name: studentName.trim(),
+        crmProfileLink: crmLink.trim(),
       };
       addStudent(newStudent);
     }
     handleClose();
-  }, [studentName, crmLink, editingStudent, addStudent, updateStudent, handleClose]);
+  }, [studentName, crmLink, editingStudent, students, addStudent, updateStudent, handleClose, enqueueSnackbar]);
 
-  const handleDelete = useCallback((id: string) => {
-    const hasIndividualClasses = scheduledClasses.some(sc => sc.studentId === id);
-    const studentGroups = groups.filter(g => g.studentIds.includes(id));
+  const handleDeleteClick = useCallback((id: string) => {
+    setStudentToDelete(id);
+    setConfirmDeleteOpen(true);
+  }, []);
 
-    let confirmMessage = 'Вы уверены, что хотите удалить этого студента?';
-    if (hasIndividualClasses || studentGroups.length > 0) {
-      confirmMessage += '\n\nЭто также:';
-      if (studentGroups.length > 0) {
-        confirmMessage += `\n- Удалит студента из ${studentGroups.length} групп(ы)`;
-      }
-      if (hasIndividualClasses) {
-        confirmMessage += '\n- Удалит все индивидуальные занятия для этого студента';
-      }
+  const handleDeleteConfirm = useCallback(() => {
+    if (studentToDelete) {
+      deleteStudent(studentToDelete);
+      setConfirmDeleteOpen(false);
+      setStudentToDelete(null);
     }
+  }, [studentToDelete, deleteStudent]);
 
-    if (window.confirm(confirmMessage)) {
-      deleteStudent(id);
+  const handleDeleteCancel = useCallback(() => {
+    setConfirmDeleteOpen(false);
+    setStudentToDelete(null);
+  }, []);
+
+  const getDeleteDetails = useCallback((studentId: string) => {
+    const studentGroups = groups.filter(g => g.studentIds.includes(studentId));
+    const individualClasses = scheduledClasses.filter(sc => sc.studentId === studentId);
+    const details: string[] = [];
+    if (studentGroups.length > 0) {
+      details.push(`${studentGroups.length} групп(ы)`);
     }
-  }, [deleteStudent, scheduledClasses, groups]);
+    if (individualClasses.length > 0) {
+      details.push(`${individualClasses.length} индивидуальных занятий`);
+    }
+    return details;
+  }, [groups, scheduledClasses]);
 
   const getStudentGroups = (studentId: string) => {
     return groups.filter(g => g.studentIds.includes(studentId));
@@ -158,10 +186,10 @@ const StudentManagement: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton onClick={() => handleEdit(student)} size="small">
+                    <IconButton onClick={() => handleEdit(student)} color="primary">
                       <EditIcon />
                     </IconButton>
-                    <IconButton onClick={() => handleDelete(student.id)} size="small" color="error">
+                    <IconButton onClick={() => handleDeleteClick(student.id)} color="error">
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
@@ -210,6 +238,15 @@ const StudentManagement: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title="Удалить студента?"
+        message={`Вы уверены, что хотите удалить студента "${students.find(s => s.id === studentToDelete)?.name}"?`}
+        details={studentToDelete ? getDeleteDetails(studentToDelete) : []}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </Box>
   );
 };

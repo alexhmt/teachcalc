@@ -56,13 +56,16 @@ const TeacherManagement: React.FC = () => {
       return;
     }
 
-    // Check for duplicates
-    const isDuplicate = teachers.some(
-      t => t.name.trim().toLowerCase() === teacherName.trim().toLowerCase() && t.id !== editingTeacher?.id
-    );
-    if (isDuplicate) {
-      enqueueSnackbar('Преподаватель с таким именем уже существует', { variant: 'error' });
-      return;
+    // Check for duplicates only if name changed
+    const nameChanged = !editingTeacher || editingTeacher.name.trim() !== teacherName.trim();
+    if (nameChanged) {
+      const isDuplicate = teachers.some(
+        t => t.name.trim().toLowerCase() === teacherName.trim().toLowerCase() && t.id !== editingTeacher?.id
+      );
+      if (isDuplicate) {
+        enqueueSnackbar('Преподаватель с таким именем уже существует', { variant: 'error' });
+        return;
+      }
     }
 
     if (editingTeacher) {

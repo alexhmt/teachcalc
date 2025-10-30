@@ -75,13 +75,16 @@ const GroupManagement: React.FC = () => {
       return;
     }
 
-    // Check for duplicates
-    const isDuplicate = groups.some(
-      g => g.name.trim().toLowerCase() === groupName.trim().toLowerCase() && g.id !== editingGroup?.id
-    );
-    if (isDuplicate) {
-      enqueueSnackbar('Группа с таким названием уже существует', { variant: 'error' });
-      return;
+    // Check for duplicates only if name changed
+    const nameChanged = !editingGroup || editingGroup.name.trim() !== groupName.trim();
+    if (nameChanged) {
+      const isDuplicate = groups.some(
+        g => g.name.trim().toLowerCase() === groupName.trim().toLowerCase() && g.id !== editingGroup?.id
+      );
+      if (isDuplicate) {
+        enqueueSnackbar('Группа с таким названием уже существует', { variant: 'error' });
+        return;
+      }
     }
 
     if (editingGroup) {

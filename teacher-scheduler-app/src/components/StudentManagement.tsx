@@ -63,13 +63,16 @@ const StudentManagement: React.FC = () => {
       return;
     }
 
-    // Check for duplicates
-    const isDuplicate = students.some(
-      s => s.name.trim().toLowerCase() === studentName.trim().toLowerCase() && s.id !== editingStudent?.id
-    );
-    if (isDuplicate) {
-      enqueueSnackbar('Студент с таким именем уже существует', { variant: 'error' });
-      return;
+    // Check for duplicates only if name changed
+    const nameChanged = !editingStudent || editingStudent.name.trim() !== studentName.trim();
+    if (nameChanged) {
+      const isDuplicate = students.some(
+        s => s.name.trim().toLowerCase() === studentName.trim().toLowerCase() && s.id !== editingStudent?.id
+      );
+      if (isDuplicate) {
+        enqueueSnackbar('Студент с таким именем уже существует', { variant: 'error' });
+        return;
+      }
     }
 
     if (editingStudent) {

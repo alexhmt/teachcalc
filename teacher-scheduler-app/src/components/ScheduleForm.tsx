@@ -61,6 +61,21 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
     }
   }, [editingClass]);
 
+  // Filter groups by selected teacher
+  const filteredGroups = selectedTeacherId
+    ? groups.filter(group => group.teacherId === selectedTeacherId)
+    : groups;
+
+  // Reset selected group if it doesn't belong to the newly selected teacher
+  useEffect(() => {
+    if (selectedTeacherId && selectedGroupId) {
+      const selectedGroup = groups.find(g => g.id === selectedGroupId);
+      if (selectedGroup && selectedGroup.teacherId !== selectedTeacherId) {
+        setSelectedGroupId('');
+      }
+    }
+  }, [selectedTeacherId, selectedGroupId, groups]);
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -175,8 +190,10 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
         <div>
           <label htmlFor="group-select" style={{display: 'block', marginBottom: '5px'}}>Группа:</label>
           <select id="group-select" value={selectedGroupId} onChange={e => setSelectedGroupId(e.target.value)} required style={selectStyle}>
-            <option value="" disabled={isEditMode}>Выберите группу</option>
-            {groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
+            <option value="" disabled={isEditMode}>
+              {selectedTeacherId ? 'Выберите группу' : 'Сначала выберите преподавателя'}
+            </option>
+            {filteredGroups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}
           </select>
         </div>
       ) : (

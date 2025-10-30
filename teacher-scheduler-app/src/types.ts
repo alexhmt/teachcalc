@@ -23,4 +23,5 @@ export interface ScheduledClass {
   teacherId: string;
   startTime: Date; // Using Date object for time
   endTime: Date;   // Will be derived from startTime + 1 hour
+  comment?: string; // Optional: comments about the class
 }

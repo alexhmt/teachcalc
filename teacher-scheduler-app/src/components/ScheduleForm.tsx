@@ -28,6 +28,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<number>(1); // Default Monday
   const [selectedTime, setSelectedTime] = useState<string>(TIME_SLOTS_OPTIONS[0]); // Default 08:00
+  const [comment, setComment] = useState<string>('');
 
   const isEditMode = !!editingClass;
 
@@ -50,6 +51,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
       // date-fns getDay(): Sunday is 0, Monday is 1. This matches our DAYS_OF_WEEK_OPTIONS values.
       setSelectedDay(dfnsGetDay(startTime));
       setSelectedTime(dfnsFormat(startTime, 'HH:mm'));
+      setComment(editingClass.comment || '');
     } else {
       // Reset form when not in edit mode or editingClass is cleared
       setSelectedTeacherId('');
@@ -58,6 +60,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
       setSelectedStudentId('');
       setSelectedDay(1); // Default Monday
       setSelectedTime(TIME_SLOTS_OPTIONS[0]); // Default 08:00
+      setComment('');
     }
   }, [editingClass]);
 
@@ -112,6 +115,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
         studentId: classType === 'individual' ? selectedStudentId : undefined,
         startTime: newStartTime,
         endTime: newEndTime,
+        comment: comment.trim() || undefined,
       };
       updateScheduledClass(updatedClassData);
     } else {
@@ -122,6 +126,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
         studentId: classType === 'individual' ? selectedStudentId : undefined,
         startTime: newStartTime,
         endTime: newEndTime,
+        comment: comment.trim() || undefined,
       };
       // Cast to any if addScheduledClass signature needs full ScheduledClass but handles ID itself
       addScheduledClass(newClassData as any);
@@ -217,6 +222,16 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
         <select id="time-select" value={selectedTime} onChange={e => setSelectedTime(e.target.value)} required style={selectStyle}>
           {TIME_SLOTS_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}
         </select>
+      </div>
+      <div>
+        <label htmlFor="comment-input" style={{display: 'block', marginBottom: '5px'}}>Комментарий:</label>
+        <textarea
+          id="comment-input"
+          value={comment}
+          onChange={e => setComment(e.target.value)}
+          placeholder="Добавьте комментарий к занятию (необязательно)"
+          style={{...selectStyle, minHeight: '80px', resize: 'vertical', fontFamily: 'inherit'}}
+        />
       </div>
       <button type="submit" style={buttonStyle}>{isEditMode ? 'Обновить' : 'Создать'}</button>
       {isEditMode && (

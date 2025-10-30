@@ -87,6 +87,12 @@ const TextReportView: React.FC<TextReportViewProps> = ({ scheduledClasses, teach
                           .join(', ')}
                       </div>
                     )}
+
+                    {cls.comment && (
+                      <div style={{ color: '#888', fontSize: '13px', marginTop: '5px', fontStyle: 'italic' }}>
+                        💬 {cls.comment}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

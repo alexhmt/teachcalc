@@ -4,6 +4,7 @@ import { ScheduledClass } from '../types';
 import { getTeacherColor } from '../utils/schedulerUtils';
 import { parseISO } from 'date-fns';
 import { useScheduler } from '../context/SchedulerContext';
+import { Comment as CommentIcon } from '@mui/icons-material';
 
 interface ClassBlockProps {
   scheduledClass: ScheduledClass;
@@ -133,6 +134,24 @@ const ClassBlock: React.FC<ClassBlockProps> = React.memo(({ scheduledClass, inde
             <div style={{ fontSize: '0.85em', marginTop: '2px' }}>
               {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>
+            {scheduledClass.comment && (
+              <div
+                style={{
+                  fontSize: '0.8em',
+                  color: '#999',
+                  marginTop: '4px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '4px',
+                }}
+                title={scheduledClass.comment}
+              >
+                <CommentIcon style={{ fontSize: '14px', marginTop: '1px' }} />
+                <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {scheduledClass.comment}
+                </span>
+              </div>
+            )}
           </div>
         );
       }}

@@ -8,12 +8,12 @@ import { isSameHour } from 'date-fns'; // Using isSameHour for 1-hour slot compa
  *
  * @param classToCheck The class being proposed or moved.
  * @param existingClasses All other scheduled classes.
- * @returns True if a conflict is found, false otherwise.
+ * @returns Object with conflict status and details, or null if no conflict.
  */
 export const checkForConflicts = (
   classToCheck: ScheduledClass,
   existingClasses: ScheduledClass[]
-): boolean => {
+): { type: 'teacher' | 'group'; message: string } | null => {
   for (const existingClass of existingClasses) {
     // Skip if it's the same class instance (e.g., when updating a class)
     if (existingClass.id === classToCheck.id) {
@@ -32,16 +32,22 @@ export const checkForConflicts = (
     if (sameTimeSlot) {
       // Conflict if the same teacher is booked at the same time
       if (classToCheck.teacherId === existingClass.teacherId) {
-        return true;
+        return {
+          type: 'teacher',
+          message: 'Преподаватель уже занят в это время'
+        };
       }
-      // Conflict if the same group is booked at the same time (e.g. with a different teacher, which shouldn't happen ideally)
-      if (classToCheck.groupId === existingClass.groupId) {
-        return true;
+      // Conflict if the same group is booked at the same time
+      if (classToCheck.groupId && classToCheck.groupId === existingClass.groupId) {
+        return {
+          type: 'group',
+          message: 'Группа уже занята в это время'
+        };
       }
     }
   }
 
-  return false; // No conflicts found
+  return null; // No conflicts found
 };
 
 

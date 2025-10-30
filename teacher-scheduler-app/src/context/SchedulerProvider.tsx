@@ -9,6 +9,7 @@ import {
   exportToJSON,
   clearLocalStorage
 } from '../utils/storageUtils';
+import { useSnackbar } from 'notistack';
 
 interface SchedulerProviderProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
   const [students, setStudents] = useState<Student[]>([]);
   const [scheduledClasses, setScheduledClasses] = useState<ScheduledClass[]>([]);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   // Load data from LocalStorage or initialize with mock data
   useEffect(() => {
@@ -88,34 +90,41 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
     // Create a new ID for the class to be added
     const newClassWithId = { ...itemToAdd, id: `sc${scheduledClasses.length + 1}${Date.now()}` };
 
-    const conflicts = checkForConflicts(newClassWithId, scheduledClasses);
+    const conflict = checkForConflicts(newClassWithId, scheduledClasses);
 
-    if (!conflicts) {
+    if (!conflict) {
       setScheduledClasses(prev => [...prev, newClassWithId]);
+      enqueueSnackbar('Занятие успешно создано', { variant: 'success' });
+    } else {
+      enqueueSnackbar(`Конфликт расписания: ${conflict.message}`, { variant: 'error' });
     }
-    // If conflicts exist, the class is not added (silent failure for now)
   };
 
   const updateScheduledClass = (itemToUpdate: ScheduledClass) => {
-    const conflicts = checkForConflicts(itemToUpdate, scheduledClasses);
+    const conflict = checkForConflicts(itemToUpdate, scheduledClasses);
 
-    if (!conflicts) {
+    if (!conflict) {
       setScheduledClasses(prev => prev.map(sc => sc.id === itemToUpdate.id ? itemToUpdate : sc));
+      enqueueSnackbar('Занятие успешно обновлено', { variant: 'success' });
+    } else {
+      enqueueSnackbar(`Конфликт расписания: ${conflict.message}`, { variant: 'error' });
     }
-    // If conflicts exist, the update is not applied (silent failure for now)
   };
 
   const deleteScheduledClass = (id: string) => {
     setScheduledClasses(prev => prev.filter(sc => sc.id !== id));
+    enqueueSnackbar('Занятие удалено', { variant: 'info' });
   };
 
   // Teacher management
   const addTeacher = (teacher: Teacher) => {
     setTeachers(prev => [...prev, teacher]);
+    enqueueSnackbar('Преподаватель добавлен', { variant: 'success' });
   };
 
   const updateTeacher = (teacher: Teacher) => {
     setTeachers(prev => prev.map(t => t.id === teacher.id ? teacher : t));
+    enqueueSnackbar('Преподаватель обновлён', { variant: 'success' });
   };
 
   const deleteTeacher = (id: string) => {
@@ -123,30 +132,36 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
     // Also remove teacher from groups and scheduled classes
     setGroups(prev => prev.filter(g => g.teacherId !== id));
     setScheduledClasses(prev => prev.filter(sc => sc.teacherId !== id));
+    enqueueSnackbar('Преподаватель удалён', { variant: 'info' });
   };
 
   // Group management
   const addGroup = (group: Group) => {
     setGroups(prev => [...prev, group]);
+    enqueueSnackbar('Группа добавлена', { variant: 'success' });
   };
 
   const updateGroup = (group: Group) => {
     setGroups(prev => prev.map(g => g.id === group.id ? group : g));
+    enqueueSnackbar('Группа обновлена', { variant: 'success' });
   };
 
   const deleteGroup = (id: string) => {
     setGroups(prev => prev.filter(g => g.id !== id));
     // Also remove group from scheduled classes
     setScheduledClasses(prev => prev.filter(sc => sc.groupId !== id));
+    enqueueSnackbar('Группа удалена', { variant: 'info' });
   };
 
   // Student management
   const addStudent = (student: Student) => {
     setStudents(prev => [...prev, student]);
+    enqueueSnackbar('Студент добавлен', { variant: 'success' });
   };
 
   const updateStudent = (student: Student) => {
     setStudents(prev => prev.map(s => s.id === student.id ? student : s));
+    enqueueSnackbar('Студент обновлён', { variant: 'success' });
   };
 
   const deleteStudent = (id: string) => {
@@ -156,6 +171,9 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
       ...g,
       studentIds: g.studentIds.filter(sid => sid !== id)
     })));
+    // Also remove student's individual classes
+    setScheduledClasses(prev => prev.filter(sc => sc.studentId !== id));
+    enqueueSnackbar('Студент удалён', { variant: 'info' });
   };
 
   // Data management
@@ -179,12 +197,13 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
   };
 
   const clearAllData = () => {
-    if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+    if (window.confirm('Вы уверены, что хотите удалить все данные? Это действие необратимо.')) {
       clearLocalStorage();
       setTeachers([]);
       setGroups([]);
       setStudents([]);
       setScheduledClasses([]);
+      enqueueSnackbar('Все данные удалены', { variant: 'info' });
     }
   };
 

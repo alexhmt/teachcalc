@@ -9,6 +9,7 @@ import SettingsManagement from './components/SettingsManagement';
 import { SchedulerProvider } from './context/SchedulerProvider';
 import { Box, Tabs, Tab, AppBar, Toolbar, Typography } from '@mui/material';
 import { CalendarMonth, Person, Group as GroupIcon, School as StudentIcon, Settings as SettingsIcon } from '@mui/icons-material';
+import { SnackbarProvider } from 'notistack';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -40,46 +41,48 @@ const App: React.FC = () => {
   };
 
   return (
-    <SchedulerProvider>
-      <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="static" className="no-print">
-          <Toolbar sx={{ minHeight: '56px !important' }}>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              Планировщик занятий
-            </Typography>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              textColor="inherit"
-              indicatorColor="secondary"
-              sx={{ ml: 'auto' }}
-            >
-              <Tab icon={<CalendarMonth />} label="Расписание" />
-              <Tab icon={<Person />} label="Преподаватели" />
-              <Tab icon={<GroupIcon />} label="Группы" />
-              <Tab icon={<StudentIcon />} label="Студенты" />
-              <Tab icon={<SettingsIcon />} label="Настройки" />
-            </Tabs>
-          </Toolbar>
-        </AppBar>
+    <SnackbarProvider maxSnack={3}>
+      <SchedulerProvider>
+        <Box sx={{ flexGrow: 1 }}>
+          <AppBar position="static" className="no-print">
+            <Toolbar sx={{ minHeight: '56px !important' }}>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                Планировщик занятий
+              </Typography>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                textColor="inherit"
+                indicatorColor="secondary"
+                sx={{ ml: 'auto' }}
+              >
+                <Tab icon={<CalendarMonth />} label="Расписание" />
+                <Tab icon={<Person />} label="Преподаватели" />
+                <Tab icon={<GroupIcon />} label="Группы" />
+                <Tab icon={<StudentIcon />} label="Студенты" />
+                <Tab icon={<SettingsIcon />} label="Настройки" />
+              </Tabs>
+            </Toolbar>
+          </AppBar>
 
-        <TabPanel value={tabValue} index={0}>
-          <SchedulerCalendar />
-        </TabPanel>
-        <TabPanel value={tabValue} index={1}>
-          <TeacherManagement />
-        </TabPanel>
-        <TabPanel value={tabValue} index={2}>
-          <GroupManagement />
-        </TabPanel>
-        <TabPanel value={tabValue} index={3}>
-          <StudentManagement />
-        </TabPanel>
-        <TabPanel value={tabValue} index={4}>
-          <SettingsManagement />
-        </TabPanel>
-      </Box>
-    </SchedulerProvider>
+          <TabPanel value={tabValue} index={0}>
+            <SchedulerCalendar />
+          </TabPanel>
+          <TabPanel value={tabValue} index={1}>
+            <TeacherManagement />
+          </TabPanel>
+          <TabPanel value={tabValue} index={2}>
+            <GroupManagement />
+          </TabPanel>
+          <TabPanel value={tabValue} index={3}>
+            <StudentManagement />
+          </TabPanel>
+          <TabPanel value={tabValue} index={4}>
+            <SettingsManagement />
+          </TabPanel>
+        </Box>
+      </SchedulerProvider>
+    </SnackbarProvider>
   );
 }
 

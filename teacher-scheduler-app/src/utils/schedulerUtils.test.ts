@@ -34,28 +34,32 @@ describe('schedulerUtils', () => {
       existingClassT1G1_1000,
     ];
 
-    it('should return false when there are no conflicts with any existing class', () => {
+    it('should return null when there are no conflicts with any existing class', () => {
       const newClassNoConflict = createClass('new0', 't99', 'g99', time0900); // Different T/G, same time as some
-      expect(checkForConflicts(newClassNoConflict, existingClasses)).toBe(false);
+      expect(checkForConflicts(newClassNoConflict, existingClasses)).toBeNull();
       const newClassNoConflictDifferentTime = createClass('new1', 't1', 'g1', time1100); // Same T/G as c1, but different time
-      expect(checkForConflicts(newClassNoConflictDifferentTime, existingClasses)).toBe(false);
+      expect(checkForConflicts(newClassNoConflictDifferentTime, existingClasses)).toBeNull();
     });
 
-    it('should return true for conflict by teacher (same teacher, same time, different group)', () => {
+    it('should return conflict object for conflict by teacher (same teacher, same time, different group)', () => {
       // This new class conflicts with existingClassT1G3_0900 (c3) because teacher 't1' is booked at 9AM.
       // And also conflicts with existingClassT1G1_0900 (c1) for the same reason.
       const newClassConflictTeacher = createClass('new2', 't1', 'g99', time0900);
-      expect(checkForConflicts(newClassConflictTeacher, existingClasses)).toBe(true);
+      const result = checkForConflicts(newClassConflictTeacher, existingClasses);
+      expect(result).not.toBeNull();
+      expect(result?.type).toBe('teacher');
     });
 
-    it('should return true for conflict by group (same group, same time, different teacher)', () => {
+    it('should return conflict object for conflict by group (same group, same time, different teacher)', () => {
       // This new class conflicts with existingClassT3G1_0900 (c4) because group 'g1' is booked at 9AM.
       // And also conflicts with existingClassT1G1_0900 (c1) for the same reason.
       const newClassConflictGroup = createClass('new3', 't99', 'g1', time0900);
-      expect(checkForConflicts(newClassConflictGroup, existingClasses)).toBe(true);
+      const result = checkForConflicts(newClassConflictGroup, existingClasses);
+      expect(result).not.toBeNull();
+      expect(result?.type).toBe('group');
     });
 
-    it('should return false if checking a class against itself (same id)', () => {
+    it('should return null if checking a class against itself (same id)', () => {
       // Create a slightly modified version of an existing class, but with the same ID.
       const updatedClassC1 = { ...existingClassT1G1_0900, teacherId: 't-new-for-c1' };
       // When checking updatedClassC1, it should ignore the original existingClassT1G1_0900 in the list.
@@ -69,8 +73,8 @@ describe('schedulerUtils', () => {
       // This test means: if I update c1, it shouldn't conflict with the original c1 in the list.
       // Let's test updating c1 so it clashes with c3 (t1, g3, 9am)
       const c1UpdatedToClashWithC3IfNoSelfCheck = createClass('c1', 't1', 'g1', time0900); // This is identical to existing c1
-      // This test should be "if I update c1, and its new details *only* clash with its old details, it's false"
-      // More accurately: "if I update c1, and its new details clash with c3, it's true, *unless* c1 is c3 (which it's not)"
+      // This test should be "if I update c1, and its new details *only* clash with its old details, it's null"
+      // More accurately: "if I update c1, and its new details clash with c3, it's an object, *unless* c1 is c3 (which it's not)"
       // The self-check is simple: if (existingClass.id === classToCheck.id) continue.
 
       // Scenario: c1 is being updated. Its new form is 'updatedC1'.
@@ -81,17 +85,17 @@ describe('schedulerUtils', () => {
 
       // No conflict if only its own original entry would have been a problem.
       const updatedC1NoOtherConflicts = createClass('c1', 't1-updated', 'g1-updated', time0900);
-      expect(checkForConflicts(updatedC1NoOtherConflicts, existingClasses)).toBe(false);
+      expect(checkForConflicts(updatedC1NoOtherConflicts, existingClasses)).toBeNull();
 
       // Conflict with another class (c3) due to teacher 't1'
       const updatedC1NowConflictsWithC3 = createClass('c1', 't1', 'g1-updated-still-t1', time0900);
-      expect(checkForConflicts(updatedC1NowConflictsWithC3, existingClasses)).toBe(true);
+      expect(checkForConflicts(updatedC1NowConflictsWithC3, existingClasses)).not.toBeNull();
 
     });
 
-    it('should return false for same teacher/group but different time slot', () => {
+    it('should return null for same teacher/group but different time slot', () => {
         const newClassDifferentTime = createClass('new4', 't1', 'g1', time1100);
-        expect(checkForConflicts(newClassDifferentTime, existingClasses)).toBe(false);
+        expect(checkForConflicts(newClassDifferentTime, existingClasses)).toBeNull();
     });
 
      it('should handle string dates in ScheduledClass objects correctly', () => {
@@ -101,7 +105,7 @@ describe('schedulerUtils', () => {
         endTime: addHours(time0900, 1).toISOString() as any,
       };
       // This class should conflict with existingClassT1G1_0900 and existingClassT1G3_0900 by teacher
-      expect(checkForConflicts(stringDateClass, existingClasses)).toBe(true);
+      expect(checkForConflicts(stringDateClass, existingClasses)).not.toBeNull();
 
       const nonConflictingStringDateClass = createClass('s2', 't99', 'g99', time0900);
       // Make one of the existing classes have string dates too
@@ -109,7 +113,7 @@ describe('schedulerUtils', () => {
         createClass('c1_str', 't1', 'g1', time0900.toISOString() as any),
         existingClassT2G2_0900
       ];
-      expect(checkForConflicts(nonConflictingStringDateClass, existingWithStringDates)).toBe(false);
+      expect(checkForConflicts(nonConflictingStringDateClass, existingWithStringDates)).toBeNull();
     });
   });
 

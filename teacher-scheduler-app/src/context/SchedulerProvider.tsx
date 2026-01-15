@@ -1,4 +1,4 @@
-import React, { useState, ReactNode, useEffect } from 'react';
+import React, { useState, ReactNode, useEffect, useRef, useCallback } from 'react';
 import { SchedulerContext } from './SchedulerContext';
 import { Teacher, Group, Student, ScheduledClass } from '../types';
 import { checkForConflicts, getConflictDetails } from '../utils/schedulerUtils';
@@ -10,6 +10,9 @@ import {
   exportToJSON,
   clearLocalStorage
 } from '../utils/storageUtils';
+
+// Debounce delay for auto-save (in milliseconds)
+const AUTO_SAVE_DELAY = 500;
 
 interface SchedulerProviderProps {
   children: ReactNode;
@@ -70,7 +73,30 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
     setIsDataLoaded(true);
   }, []);
 
-  // Auto-save to LocalStorage whenever data changes
+  // Ref for debounce timer
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced save function
+  const debouncedSave = useCallback((data: AppData) => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      saveToLocalStorage(data);
+    }, AUTO_SAVE_DELAY);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Auto-save to LocalStorage whenever data changes (with debounce)
   useEffect(() => {
     if (!isDataLoaded) return; // Don't save during initial load
 
@@ -83,8 +109,8 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
       lastModified: new Date().toISOString(),
     };
 
-    saveToLocalStorage(dataToSave);
-  }, [teachers, groups, students, scheduledClasses, isDataLoaded]);
+    debouncedSave(dataToSave);
+  }, [teachers, groups, students, scheduledClasses, isDataLoaded, debouncedSave]);
 
   const addScheduledClass = (itemToAdd: ScheduledClass) => {
     // Create a new ID for the class to be added

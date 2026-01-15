@@ -7,10 +7,8 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
   TableRow,
-  Paper,
   IconButton,
   Dialog,
   DialogTitle,
@@ -20,7 +18,8 @@ import {
   Typography,
   Chip,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { CrudTableLayout, ConfirmDialog } from './shared';
 
 const StudentManagement: React.FC = () => {
   const { students, groups, scheduledClasses, addStudent, updateStudent, deleteStudent } = useScheduler();
@@ -28,6 +27,9 @@ const StudentManagement: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [studentName, setStudentName] = useState('');
   const [crmLink, setCrmLink] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState('');
 
   const handleOpen = useCallback(() => {
     setOpen(true);
@@ -70,25 +72,38 @@ const StudentManagement: React.FC = () => {
     handleClose();
   }, [studentName, crmLink, editingStudent, addStudent, updateStudent, handleClose]);
 
-  const handleDelete = useCallback((id: string) => {
+  const handleDeleteClick = useCallback((id: string) => {
     const hasIndividualClasses = scheduledClasses.some(sc => sc.studentId === id);
     const studentGroups = groups.filter(g => g.studentIds.includes(id));
 
-    let confirmMessage = 'Вы уверены, что хотите удалить этого студента?';
+    let message = 'Вы уверены, что хотите удалить этого студента?';
     if (hasIndividualClasses || studentGroups.length > 0) {
-      confirmMessage += '\n\nЭто также:';
+      message += '\n\nЭто также:';
       if (studentGroups.length > 0) {
-        confirmMessage += `\n- Удалит студента из ${studentGroups.length} групп(ы)`;
+        message += `\n- Удалит студента из ${studentGroups.length} групп(ы)`;
       }
       if (hasIndividualClasses) {
-        confirmMessage += '\n- Удалит все индивидуальные занятия для этого студента';
+        message += '\n- Удалит все индивидуальные занятия для этого студента';
       }
     }
 
-    if (window.confirm(confirmMessage)) {
-      deleteStudent(id);
+    setDeleteMessage(message);
+    setStudentToDelete(id);
+    setDeleteDialogOpen(true);
+  }, [scheduledClasses, groups]);
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (studentToDelete) {
+      deleteStudent(studentToDelete);
     }
-  }, [deleteStudent, scheduledClasses, groups]);
+    setDeleteDialogOpen(false);
+    setStudentToDelete(null);
+  }, [studentToDelete, deleteStudent]);
+
+  const handleDeleteCancel = useCallback(() => {
+    setDeleteDialogOpen(false);
+    setStudentToDelete(null);
+  }, []);
 
   const getStudentGroups = (studentId: string) => {
     return groups.filter(g => g.studentIds.includes(studentId));
@@ -99,87 +114,78 @@ const StudentManagement: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Управление студентами</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpen}
-        >
-          Добавить студента
-        </Button>
-      </Box>
+    <CrudTableLayout
+      title="Управление студентами"
+      addButtonText="Добавить студента"
+      onAdd={handleOpen}
+    >
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Имя</TableCell>
+            <TableCell>Ссылка на профиль CRM</TableCell>
+            <TableCell>Группы</TableCell>
+            <TableCell>Индивидуальные занятия</TableCell>
+            <TableCell align="right">Действия</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {students.map((student) => {
+            const studentGroups = getStudentGroups(student.id);
+            const individualCount = getIndividualClassesCount(student.id);
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Имя</TableCell>
-              <TableCell>Ссылка на профиль CRM</TableCell>
-              <TableCell>Группы</TableCell>
-              <TableCell>Индивидуальные занятия</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {students.map((student) => {
-              const studentGroups = getStudentGroups(student.id);
-              const individualCount = getIndividualClassesCount(student.id);
-
-              return (
-                <TableRow key={student.id}>
-                  <TableCell>{student.name}</TableCell>
-                  <TableCell>
-                    {student.crmProfileLink ? (
-                      <a href={student.crmProfileLink} target="_blank" rel="noopener noreferrer">
-                        Посмотреть профиль
-                      </a>
-                    ) : (
-                      '-'
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {studentGroups.length > 0 ? (
-                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                        {studentGroups.map(group => (
-                          <Chip key={group.id} label={group.name} size="small" />
-                        ))}
-                      </Box>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">-</Typography>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {individualCount > 0 ? (
-                      <Chip label={`${individualCount} занятий`} size="small" color="primary" />
-                    ) : (
-                      '-'
-                    )}
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton onClick={() => handleEdit(student)} size="small">
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton onClick={() => handleDelete(student.id)} size="small" color="error">
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-            {students.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} align="center">
-                  <Typography variant="body2" color="text.secondary">
-                    Студентов нет. Нажмите "Добавить студента" для создания.
-                  </Typography>
+            return (
+              <TableRow key={student.id}>
+                <TableCell>{student.name}</TableCell>
+                <TableCell>
+                  {student.crmProfileLink ? (
+                    <a href={student.crmProfileLink} target="_blank" rel="noopener noreferrer">
+                      Посмотреть профиль
+                    </a>
+                  ) : (
+                    '-'
+                  )}
+                </TableCell>
+                <TableCell>
+                  {studentGroups.length > 0 ? (
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                      {studentGroups.map(group => (
+                        <Chip key={group.id} label={group.name} size="small" />
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">-</Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {individualCount > 0 ? (
+                    <Chip label={`${individualCount} занятий`} size="small" color="primary" />
+                  ) : (
+                    '-'
+                  )}
+                </TableCell>
+                <TableCell align="right">
+                  <IconButton onClick={() => handleEdit(student)} size="small">
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton onClick={() => handleDeleteClick(student.id)} size="small" color="error">
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            );
+          })}
+          {students.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} align="center">
+                <Typography variant="body2" color="text.secondary">
+                  Студентов нет. Нажмите "Добавить студента" для создания.
+                </Typography>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
       {/* Add/Edit Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -210,7 +216,15 @@ const StudentManagement: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Удалить студента"
+        message={deleteMessage}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
+    </CrudTableLayout>
   );
 };
 

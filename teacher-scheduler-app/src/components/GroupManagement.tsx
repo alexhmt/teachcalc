@@ -7,10 +7,8 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
   TableRow,
-  Paper,
   IconButton,
   Dialog,
   DialogTitle,
@@ -26,7 +24,8 @@ import {
   OutlinedInput,
   SelectChangeEvent,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { CrudTableLayout, ConfirmDialog } from './shared';
 
 const GroupManagement: React.FC = () => {
   const { groups, teachers, students, addGroup, updateGroup, deleteGroup } = useScheduler();
@@ -35,6 +34,8 @@ const GroupManagement: React.FC = () => {
   const [groupName, setGroupName] = useState('');
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
 
   const handleOpen = useCallback(() => {
     setOpen(true);
@@ -87,11 +88,23 @@ const GroupManagement: React.FC = () => {
     setSelectedStudentIds(typeof value === 'string' ? value.split(',') : value);
   }, []);
 
-  const handleDelete = useCallback((id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить эту группу? Это также удалит все запланированные занятия для этой группы.')) {
-      deleteGroup(id);
+  const handleDeleteClick = useCallback((id: string) => {
+    setGroupToDelete(id);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (groupToDelete) {
+      deleteGroup(groupToDelete);
     }
-  }, [deleteGroup]);
+    setDeleteDialogOpen(false);
+    setGroupToDelete(null);
+  }, [groupToDelete, deleteGroup]);
+
+  const handleDeleteCancel = useCallback(() => {
+    setDeleteDialogOpen(false);
+    setGroupToDelete(null);
+  }, []);
 
   const getTeacherName = (teacherId: string) => {
     const teacher = teachers.find(t => t.id === teacherId);
@@ -104,66 +117,57 @@ const GroupManagement: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Управление группами</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpen}
-        >
-          Добавить группу
-        </Button>
-      </Box>
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Название группы</TableCell>
-              <TableCell>Преподаватель</TableCell>
-              <TableCell>Студенты</TableCell>
-              <TableCell align="right">Действия</TableCell>
+    <CrudTableLayout
+      title="Управление группами"
+      addButtonText="Добавить группу"
+      onAdd={handleOpen}
+    >
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>ID</TableCell>
+            <TableCell>Название группы</TableCell>
+            <TableCell>Преподаватель</TableCell>
+            <TableCell>Студенты</TableCell>
+            <TableCell align="right">Действия</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {groups.map((group) => (
+            <TableRow key={group.id}>
+              <TableCell>{group.id}</TableCell>
+              <TableCell>{group.name}</TableCell>
+              <TableCell>{getTeacherName(group.teacherId)}</TableCell>
+              <TableCell>
+                {group.studentIds.length > 0 ? (
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {group.studentIds.map(studentId => (
+                      <Chip key={studentId} label={getStudentName(studentId)} size="small" />
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">Нет студентов</Typography>
+                )}
+              </TableCell>
+              <TableCell align="right">
+                <IconButton onClick={() => handleEdit(group)} color="primary">
+                  <EditIcon />
+                </IconButton>
+                <IconButton onClick={() => handleDeleteClick(group.id)} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {groups.map((group) => (
-              <TableRow key={group.id}>
-                <TableCell>{group.id}</TableCell>
-                <TableCell>{group.name}</TableCell>
-                <TableCell>{getTeacherName(group.teacherId)}</TableCell>
-                <TableCell>
-                  {group.studentIds.length > 0 ? (
-                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                      {group.studentIds.map(studentId => (
-                        <Chip key={studentId} label={getStudentName(studentId)} size="small" />
-                      ))}
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">Нет студентов</Typography>
-                  )}
-                </TableCell>
-                <TableCell align="right">
-                  <IconButton onClick={() => handleEdit(group)} color="primary">
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(group.id)} color="error">
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-            {groups.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} align="center">
-                  Групп нет. Нажмите "Добавить группу" для создания.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          ))}
+          {groups.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} align="center">
+                Групп нет. Нажмите "Добавить группу" для создания.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{editingGroup ? 'Редактировать группу' : 'Добавить группу'}</DialogTitle>
@@ -230,7 +234,15 @@ const GroupManagement: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Удалить группу"
+        message="Вы уверены, что хотите удалить эту группу? Это также удалит все запланированные занятия для этой группы."
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
+    </CrudTableLayout>
   );
 };
 

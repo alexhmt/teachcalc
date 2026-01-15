@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { useScheduler } from '../context/SchedulerContext';
+import { useFilterState } from '../hooks/useSessionState';
 import ClassBlock from './ClassBlock';
 import ScheduleForm from './ScheduleForm';
 import TextReportView from './TextReportView';
@@ -35,33 +36,39 @@ const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => `${String(i + 8).padStar
 
 const SchedulerCalendar: React.FC = () => {
   const { scheduledClasses, updateScheduledClass, deleteScheduledClass, teachers, groups, students } = useScheduler();
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Use session-persisted filter state
+  const {
+    teacherId: selectedTeacherId,
+    groupId: selectedGroupId,
+    studentId: selectedStudentId,
+    searchQuery,
+    viewMode,
+    setTeacherId,
+    setGroupId,
+    setStudentId,
+    setSearchQuery,
+    setViewMode,
+  } = useFilterState();
+
   const [editingClass, setEditingClass] = useState<ScheduledClass | null>(null);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'table' | 'text'>('table');
 
   const handleTeacherFilterChange = useCallback((event: SelectChangeEvent) => {
-    setSelectedTeacherId(event.target.value);
-  }, []);
+    setTeacherId(event.target.value);
+  }, [setTeacherId]);
 
   const handleGroupFilterChange = useCallback((event: SelectChangeEvent) => {
-    setSelectedGroupId(event.target.value);
-  }, []);
+    setGroupId(event.target.value);
+  }, [setGroupId]);
 
   const handleStudentFilterChange = useCallback((event: SelectChangeEvent) => {
-    setSelectedStudentId(event.target.value);
-    // When student is selected, clear group filter
-    if (event.target.value) {
-      setSelectedGroupId('');
-    }
-  }, []);
+    setStudentId(event.target.value);
+  }, [setStudentId]);
 
   const handleSearchQueryChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
-  }, []);
+  }, [setSearchQuery]);
 
   const handleEditClass = useCallback((cls: ScheduledClass) => {
     setEditingClass(cls);
@@ -90,7 +97,7 @@ const SchedulerCalendar: React.FC = () => {
     if (newMode !== null) {
       setViewMode(newMode);
     }
-  }, []);
+  }, [setViewMode]);
 
   const onDragEnd = useCallback((result: DropResult) => {
     const { source, destination, draggableId } = result;

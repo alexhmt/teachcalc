@@ -7,25 +7,24 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
   TableRow,
-  Paper,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Box,
-  Typography,
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { CrudTableLayout, ConfirmDialog } from './shared';
 
 const TeacherManagement: React.FC = () => {
   const { teachers, addTeacher, updateTeacher, deleteTeacher } = useScheduler();
   const [open, setOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
   const [teacherName, setTeacherName] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState<string | null>(null);
 
   const handleOpen = useCallback(() => {
     setOpen(true);
@@ -60,59 +59,62 @@ const TeacherManagement: React.FC = () => {
     handleClose();
   }, [teacherName, editingTeacher, addTeacher, updateTeacher, handleClose]);
 
-  const handleDelete = useCallback((id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить этого преподавателя? Это также удалит все его группы и занятия.')) {
-      deleteTeacher(id);
+  const handleDeleteClick = useCallback((id: string) => {
+    setTeacherToDelete(id);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (teacherToDelete) {
+      deleteTeacher(teacherToDelete);
     }
-  }, [deleteTeacher]);
+    setDeleteDialogOpen(false);
+    setTeacherToDelete(null);
+  }, [teacherToDelete, deleteTeacher]);
+
+  const handleDeleteCancel = useCallback(() => {
+    setDeleteDialogOpen(false);
+    setTeacherToDelete(null);
+  }, []);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Управление преподавателями</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpen}
-        >
-          Добавить преподавателя
-        </Button>
-      </Box>
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Имя</TableCell>
-              <TableCell align="right">Действия</TableCell>
+    <CrudTableLayout
+      title="Управление преподавателями"
+      addButtonText="Добавить преподавателя"
+      onAdd={handleOpen}
+    >
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>ID</TableCell>
+            <TableCell>Имя</TableCell>
+            <TableCell align="right">Действия</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {teachers.map((teacher) => (
+            <TableRow key={teacher.id}>
+              <TableCell>{teacher.id}</TableCell>
+              <TableCell>{teacher.name}</TableCell>
+              <TableCell align="right">
+                <IconButton onClick={() => handleEdit(teacher)} color="primary">
+                  <EditIcon />
+                </IconButton>
+                <IconButton onClick={() => handleDeleteClick(teacher.id)} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {teachers.map((teacher) => (
-              <TableRow key={teacher.id}>
-                <TableCell>{teacher.id}</TableCell>
-                <TableCell>{teacher.name}</TableCell>
-                <TableCell align="right">
-                  <IconButton onClick={() => handleEdit(teacher)} color="primary">
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(teacher.id)} color="error">
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-            {teachers.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={3} align="center">
-                  Преподавателей нет. Нажмите "Добавить преподавателя" для создания.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          ))}
+          {teachers.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={3} align="center">
+                Преподавателей нет. Нажмите "Добавить преподавателя" для создания.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{editingTeacher ? 'Редактировать преподавателя' : 'Добавить преподавателя'}</DialogTitle>
@@ -140,7 +142,15 @@ const TeacherManagement: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Удалить преподавателя"
+        message="Вы уверены, что хотите удалить этого преподавателя? Это также удалит все его группы и занятия."
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
+    </CrudTableLayout>
   );
 };
 

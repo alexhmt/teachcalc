@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  teachcalc:
+    build:
+      context: ./teacher-scheduler-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    container_name: teachcalc-app
+
+  # Development service (optional - for hot reload)
+  teachcalc-dev:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./teacher-scheduler-app:/app
+      - /app/node_modules
+    ports:
+      - "3001:3000"
+    command: sh -c "npm install && npm start"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    profiles:
+      - dev
+    container_name: teachcalc-dev

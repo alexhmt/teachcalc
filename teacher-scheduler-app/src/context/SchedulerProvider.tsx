@@ -1,7 +1,8 @@
 import React, { useState, ReactNode, useEffect } from 'react';
 import { SchedulerContext } from './SchedulerContext';
 import { Teacher, Group, Student, ScheduledClass } from '../types';
-import { checkForConflicts } from '../utils/schedulerUtils';
+import { checkForConflicts, getConflictDetails } from '../utils/schedulerUtils';
+import { useNotification } from './NotificationContext';
 import {
   saveToLocalStorage,
   loadFromLocalStorage,
@@ -15,6 +16,7 @@ interface SchedulerProviderProps {
 }
 
 export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }) => {
+  const { showError, showSuccess } = useNotification();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -92,8 +94,11 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
 
     if (!conflicts) {
       setScheduledClasses(prev => [...prev, newClassWithId]);
+      showSuccess('Занятие успешно добавлено');
+    } else {
+      const conflictDetails = getConflictDetails(newClassWithId, scheduledClasses, teachers, groups);
+      showError(conflictDetails || 'Конфликт расписания: занятие не может быть добавлено');
     }
-    // If conflicts exist, the class is not added (silent failure for now)
   };
 
   const updateScheduledClass = (itemToUpdate: ScheduledClass) => {
@@ -101,8 +106,11 @@ export const SchedulerProvider: React.FC<SchedulerProviderProps> = ({ children }
 
     if (!conflicts) {
       setScheduledClasses(prev => prev.map(sc => sc.id === itemToUpdate.id ? itemToUpdate : sc));
+      showSuccess('Занятие успешно обновлено');
+    } else {
+      const conflictDetails = getConflictDetails(itemToUpdate, scheduledClasses, teachers, groups);
+      showError(conflictDetails || 'Конфликт расписания: занятие не может быть обновлено');
     }
-    // If conflicts exist, the update is not applied (silent failure for now)
   };
 
   const deleteScheduledClass = (id: string) => {

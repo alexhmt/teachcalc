@@ -1,5 +1,16 @@
-import { ScheduledClass } from '../types';
-import { isSameHour } from 'date-fns'; // Using isSameHour for 1-hour slot comparison
+import { ScheduledClass, Teacher, Group } from '../types';
+import { isSameHour, format } from 'date-fns'; // Using isSameHour for 1-hour slot comparison
+
+// Day names in Russian for conflict messages
+const DAYS_RU: { [key: number]: string } = {
+  0: 'воскресенье',
+  1: 'понедельник',
+  2: 'вторник',
+  3: 'среда',
+  4: 'четверг',
+  5: 'пятница',
+  6: 'суббота',
+};
 
 /**
  * Checks for conflicts for a given class against a list of existing classes.
@@ -44,6 +55,49 @@ export const checkForConflicts = (
   return false; // No conflicts found
 };
 
+/**
+ * Returns detailed information about why a conflict occurred.
+ * Useful for displaying user-friendly error messages.
+ */
+export const getConflictDetails = (
+  classToCheck: ScheduledClass,
+  existingClasses: ScheduledClass[],
+  teachers: Teacher[],
+  groups: Group[]
+): string | null => {
+  const classToCheckStartTime = typeof classToCheck.startTime === 'string'
+    ? new Date(classToCheck.startTime)
+    : classToCheck.startTime;
+
+  const dayName = DAYS_RU[classToCheckStartTime.getDay()];
+  const timeStr = `${dayName} ${format(classToCheckStartTime, 'HH:mm')}`;
+
+  for (const existingClass of existingClasses) {
+    if (existingClass.id === classToCheck.id) continue;
+
+    const existingClassStartTime = typeof existingClass.startTime === 'string'
+      ? new Date(existingClass.startTime)
+      : existingClass.startTime;
+
+    const sameTimeSlot = isSameHour(classToCheckStartTime, existingClassStartTime);
+
+    if (sameTimeSlot) {
+      if (classToCheck.teacherId === existingClass.teacherId) {
+        const teacher = teachers.find(t => t.id === classToCheck.teacherId);
+        const teacherName = teacher?.name || 'Преподаватель';
+        return `Конфликт: ${teacherName} уже занят(а) в ${timeStr}`;
+      }
+
+      if (classToCheck.groupId && classToCheck.groupId === existingClass.groupId) {
+        const group = groups.find(g => g.id === classToCheck.groupId);
+        const groupName = group?.name || 'Группа';
+        return `Конфликт: группа "${groupName}" уже имеет занятие в ${timeStr}`;
+      }
+    }
+  }
+
+  return null;
+};
 
 // Color generation for teachers
 const TEACHER_COLORS = [

@@ -17,9 +17,11 @@ const TIME_SLOTS_OPTIONS = Array.from({ length: 13 }, (_, i) => {
 interface ScheduleFormProps {
   editingClass: ScheduledClass | null;
   onFormClose: () => void; // To close the form or reset editing state
+  prefilledDay?: number; // Day of week (0=Sunday, 1=Monday, etc.)
+  prefilledTime?: string; // Time in "HH:00" format
 }
 
-const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }) => {
+const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose, prefilledDay, prefilledTime }) => {
   const { teachers, groups, students, addScheduledClass, updateScheduledClass } = useScheduler();
 
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
@@ -56,10 +58,11 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ editingClass, onFormClose }
       setClassType('group');
       setSelectedGroupId('');
       setSelectedStudentId('');
-      setSelectedDay(1); // Default Monday
-      setSelectedTime(TIME_SLOTS_OPTIONS[0]); // Default 08:00
+      // Use prefilled values if provided, otherwise use defaults
+      setSelectedDay(prefilledDay !== undefined ? prefilledDay : 1);
+      setSelectedTime(prefilledTime !== undefined ? prefilledTime : TIME_SLOTS_OPTIONS[0]);
     }
-  }, [editingClass]);
+  }, [editingClass, prefilledDay, prefilledTime]);
 
   // Filter groups by selected teacher
   const filteredGroups = selectedTeacherId

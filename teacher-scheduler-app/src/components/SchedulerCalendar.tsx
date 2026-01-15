@@ -53,6 +53,8 @@ const SchedulerCalendar: React.FC = () => {
 
   const [editingClass, setEditingClass] = useState<ScheduledClass | null>(null);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [prefilledDay, setPrefilledDay] = useState<number | undefined>(undefined);
+  const [prefilledTime, setPrefilledTime] = useState<string | undefined>(undefined);
 
   const handleTeacherFilterChange = useCallback((event: SelectChangeEvent) => {
     setTeacherId(event.target.value);
@@ -81,12 +83,24 @@ const SchedulerCalendar: React.FC = () => {
 
   const handleOpenForm = useCallback(() => {
     setEditingClass(null);
+    setPrefilledDay(undefined);
+    setPrefilledTime(undefined);
+    setFormDialogOpen(true);
+  }, []);
+
+  const handleCellDoubleClick = useCallback((dayName: string, timeSlot: string) => {
+    const dayIndex = DAY_NAME_TO_INDEX[dayName];
+    setEditingClass(null);
+    setPrefilledDay(dayIndex);
+    setPrefilledTime(timeSlot);
     setFormDialogOpen(true);
   }, []);
 
   const handleFormClose = useCallback(() => {
     setFormDialogOpen(false);
     setEditingClass(null);
+    setPrefilledDay(undefined);
+    setPrefilledTime(undefined);
   }, []);
 
   const handlePrint = useCallback(() => {
@@ -262,6 +276,7 @@ const SchedulerCalendar: React.FC = () => {
                           className={`calendar-cell ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
                           ref={provided.innerRef}
                           {...provided.droppableProps}
+                          onDoubleClick={() => handleCellDoubleClick(day, timeSlot)}
                         >
                           {classesInSlot.map((scheduledClass, index) => {
                             const group = scheduledClass.groupId ? groupMap.get(scheduledClass.groupId) : undefined;
@@ -334,7 +349,12 @@ const SchedulerCalendar: React.FC = () => {
       >
         <DialogTitle>{editingClass ? 'Редактировать занятие' : 'Добавить занятие'}</DialogTitle>
         <DialogContent>
-          <ScheduleForm editingClass={editingClass} onFormClose={handleFormClose} />
+          <ScheduleForm
+            editingClass={editingClass}
+            onFormClose={handleFormClose}
+            prefilledDay={prefilledDay}
+            prefilledTime={prefilledTime}
+          />
         </DialogContent>
       </Dialog>
     </Box>

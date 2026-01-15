@@ -52,7 +52,18 @@
   flex: 1; /* Distribute space equally among cells in a row */
   min-height: 60px; /* Give some height to the cells */
   position: relative; /* For future absolute positioning of class blocks if needed */
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
+
+.calendar-cell:hover {
+  background-color: #f0f7ff;
+}
+
+.calendar-cell.dragging-over {
+  background-color: #e3f2fd;
+}
+
 .calendar-cell:last-child {
   border-right: none;
 }
